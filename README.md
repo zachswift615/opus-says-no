@@ -75,7 +75,59 @@ cd ~/projects/claude-custom-skills
 ./uninstall.sh
 ```
 
-## Workflow
+## Workflow Diagram
+
+```mermaid
+flowchart TD
+    Start([New Feature]) --> Brainstorm[/brainstorming-to-plan/]
+    Brainstorm --> Explore[Explore & Decide<br/>9 Phases]
+    Explore --> DesignReview{{Design Review<br/>Opus Subagent}}
+    DesignReview -->|Iterate| Explore
+    DesignReview -->|Approved| DesignDoc[(Design Doc)]
+
+    DesignDoc --> PlanCmd[/plan-from-design/]
+    PlanCmd --> Assess{Complexity?}
+
+    Assess -->|Simple<br/>< 5-7 tasks| Simple[/implementation-planning/]
+    Simple --> SimplePlan[3 Phases + Reviews]
+    SimplePlan --> PlanDoc[(Plan)]
+
+    Assess -->|Complex<br/>8+ tasks| Orch[/implementation-planning-orchestrator/]
+    Orch --> Outline[Task Outline]
+    Outline --> GapReview{{Gap Analysis<br/>Opus Subagent}}
+    GapReview -->|Iterate| Outline
+    GapReview -->|Clean| BatchLoop[Batch Loop]
+
+    BatchLoop --> Writer[Fresh Writer<br/>Per Batch]
+    Writer --> BatchReview{{Batch Review<br/>Opus Subagent}}
+    BatchReview -->|Iterate| Writer
+    BatchReview -->|Next Batch| BatchLoop
+    BatchReview -->|All Done| FinalReview{{Final Review<br/>Opus Subagent}}
+    FinalReview --> PlanDoc
+
+    PlanDoc --> ExecCmd[/execute-plan/]
+    ExecCmd --> GoAgents[/go-agents/]
+    GoAgents --> Impl[Implementers<br/>Resume Pattern]
+    Impl --> UnifiedReview{{Unified Review<br/>Spec + Code}}
+    UnifiedReview -->|Iterate| Impl
+    UnifiedReview --> Done([Complete!])
+
+    classDef reviewNode fill:#ff6b6b,stroke:#c92a2a,color:#fff
+    classDef cmdNode fill:#ffd43b,stroke:#f59f00,color:#000
+    classDef docNode fill:#51cf66,stroke:#2f9e44,color:#fff
+
+    class DesignReview,GapReview,BatchReview,FinalReview,UnifiedReview reviewNode
+    class Brainstorm,PlanCmd,Simple,Orch,ExecCmd,GoAgents cmdNode
+    class DesignDoc,PlanDoc docNode
+```
+
+**Legend:** 🟡 Commands/Skills | 🔴 Reviews (Opus) | 🟢 Documents
+
+For detailed workflow, see [workflow-diagram.md](workflow-diagram.md)
+
+---
+
+## Text Workflow
 
 For new features or complex tasks:
 
