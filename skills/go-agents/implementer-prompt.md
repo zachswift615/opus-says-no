@@ -67,11 +67,12 @@ Task tool (general-purpose):
        - Tests should verify actual behavior
        - Run tests and ensure they pass
 
-    3. **Self-review before reporting**
+    3. **Self-review before reporting** (catches issues early, but doesn't replace unified review)
        - Did I implement everything requested?
        - Did I implement ONLY what was requested?
        - Is the code clean and following existing patterns?
        - Are there edge cases I missed?
+       - Fix any issues you find NOW before reporting
 
     4. **Commit your work**
        - Clear commit message describing what was done

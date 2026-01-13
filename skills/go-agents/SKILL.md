@@ -297,6 +297,9 @@ Done!
 - Make agents read the plan file (provide full task text)
 - Rush past questions (answer thoroughly, they'll be resumed)
 - Let implementers expand scope ("I also added X" = spec violation)
+- **Dispatch multiple implementation subagents in parallel** (they will conflict on files)
+- Let implementer self-review replace the unified review (both are needed)
+- Skip scene-setting context (subagent needs to understand where task fits)
 
 **If implementer expands scope:**
 - They may be "helping" by implementing later tasks
@@ -307,6 +310,12 @@ Done!
 - Resume original implementer if capacity allows (they have context)
 - Otherwise dispatch fix agent with specific instructions
 - Always re-review after fixes
+
+**If subagent fails a task:**
+- Don't try to fix manually (context pollution in your session)
+- Dispatch a fix agent with specific instructions about what went wrong
+- Give them the error output and clear guidance
+- Or resume the original if they have capacity and just hit a fixable issue
 
 ## Integration
 

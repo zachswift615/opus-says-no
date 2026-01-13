@@ -51,13 +51,23 @@ Task tool (general-purpose):
 
     ### Part 1: Spec Compliance (CRITICAL)
 
-    **Do NOT trust the implementer's claims.** They may have:
-    - Misunderstood requirements
-    - Skipped parts they thought were optional
-    - Added things that weren't requested
-    - Implemented the wrong interpretation
+    **The implementer finished suspiciously quickly.** Their report may be
+    incomplete, inaccurate, or optimistic. You MUST verify everything independently.
 
-    For each task, verify by reading the actual code:
+    **DO NOT:**
+    - Take their word for what they implemented
+    - Trust their claims about completeness
+    - Accept their interpretation of requirements
+    - Skim the code - read it carefully
+
+    **DO:**
+    - Read the actual code they wrote
+    - Compare actual implementation to requirements **line by line**
+    - Check for missing pieces they claimed to implement
+    - Look for extra features they didn't mention
+    - Include **file:line references** for every issue found
+
+    For each task, verify:
 
     **Check for MISSING requirements:**
     - Is everything from the spec actually implemented?
@@ -68,10 +78,14 @@ Task tool (general-purpose):
     - Did they build things not in the spec?
     - Did they "helpfully" add features from later tasks?
     - Did they over-engineer beyond requirements?
+    - If you find deviations: are they justified improvements or problematic departures?
+      (Minor defensive additions may be fine; features from later tasks are not)
 
     **Check for MISUNDERSTANDINGS:**
     - Did they interpret requirements differently than intended?
     - Did they solve adjacent but wrong problem?
+
+    **Verify by reading code, not by trusting the report.**
 
     ### Part 2: Code Quality
 
@@ -81,11 +95,14 @@ Task tool (general-purpose):
     - Does it follow existing patterns in the codebase?
     - Is there proper separation of concerns?
     - Are dependencies appropriate?
+    - Does it follow SOLID principles where applicable?
 
     **Code Cleanliness:**
     - Clear naming (describes what, not how)
     - Appropriate abstractions (not over/under-engineered)
     - No dead code or commented-out code
+    - Type safety (if typed language)
+    - Defensive programming where appropriate
 
     **Error Handling:**
     - Are errors handled appropriately?
@@ -135,7 +152,8 @@ Task tool (general-purpose):
       "overall": {
         "verdict": "approved" | "needs_fixes",
         "summary": "One-line summary",
-        "blocking_issues": ["List of things that MUST be fixed before proceeding"]
+        "blocking_issues": ["List of things that MUST be fixed before proceeding"],
+        "plan_issues": ["Issues with the plan itself that affect remaining tasks (optional)"]
       }
     }
     ```
@@ -168,6 +186,8 @@ Task tool (general-purpose):
     - DO call out spec violations clearly - this is your primary job
     - Acknowledge what was done well before listing issues
     - Be specific about fixes needed (vague feedback wastes time)
+    - If you identify issues with the original PLAN itself, note them separately
+      (the coordinator may need to update the plan for remaining tasks)
 ```
 
 ## Interpreting Results
