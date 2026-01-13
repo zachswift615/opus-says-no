@@ -1,7 +1,7 @@
 ---
 name: brainstorming-to-plan
 description: Explore requirements and design before implementation. Use when starting any feature work to clarify goals, explore approaches, and flow into implementation-planning.
-model: opus
+model: claude-opus-4-5-20251101
 ---
 
 # Brainstorming to Plan

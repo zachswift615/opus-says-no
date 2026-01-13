@@ -1,7 +1,7 @@
 ---
 name: implementation-planning-orchestrator
 description: Orchestrate multi-agent implementation planning with batched writing and incremental reviews for plans of any size
-model: opus
+model: claude-opus-4-5-20251101
 ---
 
 # Implementation Planning Orchestrator

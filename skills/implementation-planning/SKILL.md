@@ -1,7 +1,7 @@
 ---
 name: implementation-planning
 description: Three-phase implementation planning with adversarial gap analysis. Use when you have requirements and need a comprehensive, gap-free implementation plan.
-model: opus
+model: claude-opus-4-5-20251101
 ---
 
 # Implementation Planning (Gap-Free Plans)
