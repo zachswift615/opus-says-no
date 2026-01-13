@@ -241,15 +241,15 @@ Now write detailed implementation in batches to avoid context limits.
 - Count total tasks from outline
 - Estimate complexity (simple/medium/complex)
 - Calculate batches:
-  - Simple tasks: 8-12 per batch
-  - Medium tasks: 5-8 per batch
-  - Complex tasks: 3-5 per batch
-  - Mixed: 5-7 per batch (conservative)
+  - Simple tasks: 4-5 per batch
+  - Medium tasks: 3-4 per batch
+  - Complex tasks: 1-2 per batch
+  - Mixed: 2-3 per batch (conservative)
 
 **Example:**
 - Total: 18 tasks
 - Complexity: Mixed (some simple config, some complex algorithms)
-- Batches: 3 batches of 6 tasks each
+- Batches: 6 batches of 3 tasks each
 
 ### Batch Loop
 
