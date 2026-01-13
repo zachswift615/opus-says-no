@@ -12,6 +12,29 @@ Explore and clarify requirements before committing to an implementation. This sk
 
 **Announce at start:** "I'm using brainstorming-to-plan to explore this before we commit to an approach."
 
+---
+
+## 🚨 CRITICAL: This is an INTERACTIVE Skill
+
+**DO NOT auto-complete all phases.** This is a CONVERSATION, not a form to fill out.
+
+**Process:**
+1. **ASK** the user questions for each phase
+2. **DISCUSS** their answers - probe for clarity, suggest alternatives
+3. **ITERATE** - let the conversation evolve naturally
+4. **CONFIRM** understanding before moving to the next phase
+5. **STOP** between phases - don't rush through
+
+**DO NOT:**
+- Fill in templates with your own assumptions
+- List all questions at once and expect written answers
+- Move to the next phase without user confirmation
+- Write the entire design document without input
+
+**Think of this as a brainstorming session WITH the user, not FOR the user.**
+
+---
+
 ## The Flow
 
 ```
@@ -30,14 +53,21 @@ Brainstorming (this skill)
 
 Before exploring solutions, make sure we understand the problem.
 
-### Questions to Answer
+**IMPORTANT: This phase is INTERACTIVE. Ask questions, discuss, iterate. Do NOT move to Phase 2 until the user confirms you have a clear understanding.**
+
+### Ask These Questions
+
+**Ask the user these questions one at a time or in small groups. Discuss their answers. Probe for clarity.**
+
 1. **What problem are we solving?** (Not "what feature" - what pain point)
 2. **Who experiences this problem?** (User, developer, system)
 3. **What does success look like?** (Measurable outcome)
 4. **What are the constraints?** (Time, tech, compatibility)
 5. **What's out of scope?** (Explicitly)
 
-### Output Format
+**After discussing:** Summarize your understanding and ask the user to confirm before proceeding.
+
+### Document the Answers
 
 ```markdown
 ## Problem Understanding
@@ -64,12 +94,16 @@ Before exploring solutions, make sure we understand the problem.
 
 Generate multiple approaches before picking one.
 
-### Generate Options
-- List at least 2-3 different approaches
-- Include the "obvious" solution AND alternatives
-- Consider the "do nothing" option - is it viable?
+**IMPORTANT: This phase is INTERACTIVE. Brainstorm options WITH the user. Don't just list options - discuss trade-offs together. Do NOT move to Phase 3 until you've explored options together.**
 
-### For Each Option, Evaluate
+### Brainstorm Options Together
+
+1. **Propose 2-3 different approaches** - Include the "obvious" solution AND alternatives
+2. **Discuss each option** with the user - What do they think? What concerns do they have?
+3. **Consider the "do nothing" option** - Is it viable?
+4. **Let the conversation evolve** - User might suggest options you didn't think of
+
+### Document Each Option
 
 ```markdown
 ### Option A: [Name]
@@ -110,7 +144,9 @@ Create a decision matrix:
 
 Document decisions explicitly so they're preserved for the implementation phase.
 
-### Decision Template
+**IMPORTANT: This phase is INTERACTIVE. Work WITH the user to make decisions. Discuss trade-offs. Don't decide for them. Do NOT move to Phase 4 until decisions are confirmed.**
+
+### Decide Together
 
 ```markdown
 ## Decisions
@@ -138,6 +174,17 @@ Document decisions explicitly so they're preserved for the implementation phase.
 ## Phase 4: Define the Scope
 
 Before handing off to planning, define exactly what we're building.
+
+**IMPORTANT: This phase is INTERACTIVE. Work WITH the user to define scope. What's must-have vs nice-to-have? What's explicitly out? Do NOT move to Phase 5 until scope is agreed upon.**
+
+### Define Scope Together
+
+**Discuss with the user:**
+- What MUST be in this iteration?
+- What would be NICE but can be cut?
+- What is explicitly OUT of scope?
+
+### Document the Scope
 
 ```markdown
 ## Scope Definition
