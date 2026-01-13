@@ -20,27 +20,37 @@ Explore requirements and design before implementation. Use when starting any fea
 
 **Use:** `/brainstorming-to-plan`
 
+### `implementation-planning-orchestrator` (Recommended)
+Multi-agent orchestrated implementation planning with batched writing and incremental reviews. Handles plans of any size without context limits.
+
+**The Orchestration Flow:**
+1. **Task Outline** - Single agent creates high-level structure
+2. **Gap Analysis** - Opus subagent finds structural gaps, iterate until clean
+3. **Batched Detailed Planning** - Fresh agents write 5-8 tasks per batch
+4. **Incremental Reviews** - Each batch reviewed before next begins
+5. **Final Holistic Review** - Opus subagent validates entire plan
+6. **Feedback Incorporation** - Address any final issues
+
+**Key innovation:** Plans written in batches by fresh agents with incremental reviews. Scales to any plan size while maintaining quality.
+
+**Use for:** 8+ tasks, complex features, production work
+**Use:** `/implementation-planning-orchestrator` (auto-invoked by `/plan-from-design`)
+
 ### `implementation-planning`
-Three-phase implementation planning with adversarial gap analysis. Creates comprehensive, gap-free, executable implementation plans.
+Single-agent implementation planning for simple, straightforward plans (< 5-7 tasks).
 
 **The Three-Phase Approach:**
-1. **Phase 1: Task Outline** - Goals, inputs, outputs, dependencies (no code yet)
-2. **Phase 2: Adversarial Gap Analysis** - Opus subagent finds structural gaps:
-   - Connection gaps (orphan tasks, missing inputs/outputs)
-   - Integration gaps (wiring missing?)
-   - Testing gaps (integration test?)
-   - Error handling gaps
-   - Iterate until no gaps found
-3. **Phase 3: Detailed Plan** - Write complete code, exact file paths, verification steps
-4. **Phase 4: Final Plan Review** - Opus subagent verifies executability:
-   - No placeholders in code
-   - File paths are specific
-   - Commands are clear
-   - Verification steps are testable
+1. **Phase 1: Task Outline** - Goals, inputs, outputs, dependencies
+2. **Phase 2: Gap Analysis** - Opus subagent reviews, iterate if needed
+3. **Phase 3: Detailed Plan** - Write complete implementation in one pass
+4. **Phase 4: Final Review** - Opus subagent verifies executability
 
+**Use for:** Simple plans with few straightforward tasks
 **Use:** `/implementation-planning`
 
-Then execute with: `/execute-plan <path-to-plan>`
+**When in doubt, use orchestrator** - it handles any complexity gracefully.
+
+Then execute plans with: `/execute-plan <path-to-plan>`
 
 ## Installation
 
@@ -116,23 +126,35 @@ This command loads the plan and invokes the execution orchestration skill, which
 ```
 claude-custom-skills/
 ├── README.md
-├── install.sh                       # Install skills, prompts, and commands
-├── uninstall.sh                     # Remove installed files
+├── install.sh                                    # Install skills, prompts, and commands
+├── uninstall.sh                                  # Remove installed files
 ├── skills/
 │   ├── brainstorming-to-plan/
-│   │   ├── SKILL.md                 # Main skill
-│   │   └── design-review.md         # Design review prompt
-│   └── implementation-planning/
-│       ├── SKILL.md                 # Main skill
-│       ├── gap-analysis-review.md   # Gap analysis prompt
-│       └── plan-review.md           # Final review prompt
-├── prompts/                         # Shared prompts (also in skill dirs)
+│   │   ├── SKILL.md                              # Main skill
+│   │   └── design-review.md                      # Design review prompt
+│   ├── implementation-planning/                  # Simple plans (< 5-7 tasks)
+│   │   ├── SKILL.md                              # Main skill
+│   │   ├── gap-analysis-review.md                # Gap analysis prompt
+│   │   └── plan-review.md                        # Final review prompt
+│   ├── implementation-planning-orchestrator/     # Complex plans (8+ tasks) - Recommended
+│   │   ├── SKILL.md                              # Orchestrator skill
+│   │   ├── gap-analysis-review.md                # Gap analysis prompt
+│   │   ├── batch-plan-writer.md                  # Batch writing prompt
+│   │   ├── batch-plan-reviewer.md                # Batch review prompt
+│   │   └── plan-review.md                        # Final review prompt
+│   └── go-agents/                                # Execution coordination
+│       ├── SKILL.md
+│       ├── implementer-prompt.md
+│       └── unified-reviewer-prompt.md
+├── prompts/                                      # Shared prompts
 │   ├── design-review.md
 │   ├── gap-analysis-review.md
+│   ├── batch-plan-writer.md
+│   ├── batch-plan-reviewer.md
 │   └── plan-review.md
 └── commands/
-    ├── plan-from-design.md          # Create plan from design doc
-    └── execute-plan.md              # Execute plan with subagents
+    ├── plan-from-design.md                       # Create plan from design doc
+    └── execute-plan.md                           # Execute plan with subagents
 ```
 
 The install script copies:
@@ -155,13 +177,24 @@ The install script copies:
 
 ## Why These Skills?
 
-The default planning approach often produces plans with gaps - missing integration points, tasks that don't connect, incomplete wiring, or unclear instructions. These skills address that through multiple layers of adversarial review:
+The default planning approach often produces plans with gaps - missing integration points, tasks that don't connect, incomplete wiring, or unclear instructions. Even worse, agents hit context limits on complex plans and resort to placeholders. These skills solve both problems:
 
-1. **Separating exploration from planning** - Brainstorm first, plan second
-2. **Using Gherkin scenarios** - Concrete user stories reveal edge cases and gaps
-3. **Design review (brainstorming)** - Fresh Opus subagent challenges designs before planning
-4. **Gap analysis (planning)** - Fresh Opus subagent finds structural gaps in task outlines
-5. **Plan review (planning)** - Fresh Opus subagent verifies executability of detailed plans
-6. **Iterating at each stage** - Fix issues before moving to next phase
-7. **Using Opus for all reviews** - Better reasoning for catching subtle gaps
-8. **Subagent-driven execution** - Coordinated task execution with dependency management
+### Multi-Layered Adversarial Review
+1. **Design review (brainstorming)** - Fresh Opus subagent challenges designs before planning
+2. **Gap analysis (planning)** - Fresh Opus subagent finds structural gaps in task outlines
+3. **Incremental batch reviews** - Each batch of tasks reviewed before next begins
+4. **Final plan review** - Fresh Opus subagent verifies complete executability
+5. **Using Opus for all reviews** - Better reasoning for catching subtle gaps
+
+### Scalable Planning Architecture
+6. **Batched planning** - Plans written in 5-8 task batches by fresh agents
+7. **No context limits** - Each batch agent starts fresh with room for review feedback
+8. **Incremental quality** - Issues caught and fixed per batch, not at the end
+9. **Resumable agents** - Writers can incorporate feedback via resume, not restart
+
+### Complete Workflow
+10. **Separating exploration from planning** - Brainstorm with Gherkin scenarios first
+11. **Iterating at each stage** - Fix issues before moving to next phase
+12. **Subagent-driven execution** - Coordinated implementation with dependency management
+
+**Result:** Gap-free, complete plans at any scale with no placeholders or context-limit compromises.

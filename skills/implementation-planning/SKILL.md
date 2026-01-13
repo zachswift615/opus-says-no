@@ -14,6 +14,29 @@ Create comprehensive implementation plans using a three-phase approach that catc
 
 **Save plans to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
 
+## Choose Your Planning Approach
+
+**Before starting, assess plan complexity:**
+
+### Use implementation-planning-orchestrator if:
+- Plan will have **8+ tasks**
+- Tasks have **mixed complexity** (simple + complex)
+- Tasks are **highly complex** (algorithms, major refactors)
+- You want **highest quality** at any scale
+- **Recommended for most production features**
+
+**Why orchestrator?** Writes plan in batches with fresh agents, avoiding context limits and maintaining quality throughout.
+
+### Use this skill (implementation-planning) if:
+- Plan is **simple** (< 5-7 straightforward tasks)
+- All tasks are **similar complexity**
+- Single agent can complete it comfortably
+- Quick iteration needed
+
+**If unsure, use orchestrator.** It handles any size gracefully.
+
+---
+
 ## The Three-Phase Approach
 
 ```
