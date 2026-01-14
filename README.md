@@ -1,107 +1,134 @@
-# Custom Claude Code Skills
+# Opus Says No
 
-A collection of custom skills for Claude Code that improve the planning, implementation, and bug-fixing workflow.
+A collection of custom skills for Claude Code that enforce discipline in planning, implementation, and bug-fixing.
+
+```
+PLANS WITH GAPS ARE BUGS YOU HAVEN'T FOUND YET.
+```
+
+## The Philosophy
+
+Every shortcut in planning becomes a bug in implementation. Every skipped review becomes a regression. Every "just try this" becomes three hours of debugging.
+
+**Opus says no to:**
+- Plans with placeholders ("add validation here")
+- Skipping adversarial review ("it looks fine to me")
+- Context-limit compromises ("I'll summarize the rest")
+- Fixing bugs without understanding them ("let me try one more thing")
+- Starting fresh sessions without context ("what does this feature do again?")
+
+**Opus says yes to:**
+- Gap analysis before detailed planning
+- Fresh Opus subagents challenging every design
+- Batched planning that scales to any size
+- Structured escalation when bugs resist fixing
+- Feature docs that transfer context between sessions
+
+---
 
 ## Skills Included
 
 ### `brainstorming-to-plan`
-Explore requirements and design before implementation. Use when starting any feature work to clarify goals, explore options, and make decisions. Includes adversarial design review to catch gaps before planning.
 
-**Flow:**
+Don't start coding until you know what you're building.
+
+**Core principle:** Exploration before commitment. Decisions before details.
+
 1. Understand the goal (problem, success criteria, constraints)
-2. Explore solution space (2-3 options with pros/cons)
-3. Make decisions (explicit choices with rationale)
-4. Define scope (must have / nice to have / out of scope)
-5. Write Gherkin user stories (for user-facing features)
-6. Write initial design document
-7. **Adversarial design review** (Opus subagent challenges the design)
-8. Incorporate feedback & iterate
-9. Hand off to `implementation-planning`
+2. Explore 2-3 approaches with trade-offs
+3. Make explicit decisions with rationale
+4. Define scope ruthlessly (must have / nice to have / out of scope)
+5. Write Gherkin scenarios (for user-facing features)
+6. Write design document
+7. **Adversarial review** - Fresh Opus challenges everything
+8. Iterate until approved
+9. Hand off to planning
 
 **Output:** `docs/<feature-name>/design.md`
 
-**Use:** `/brainstorming-to-plan`
-
 ### `implementation-planning-orchestrator` (Recommended)
-Multi-agent orchestrated implementation planning with batched writing and incremental reviews. Handles plans of any size without context limits.
 
-**The Orchestration Flow:**
-1. **Task Outline** - Single agent creates high-level structure
-2. **Gap Analysis** - Opus subagent finds structural gaps, iterate until clean
-3. **Batched Detailed Planning** - Fresh agents write 5-8 tasks per batch
-4. **Incremental Reviews** - Each batch reviewed before next begins
-5. **Final Holistic Review** - Opus subagent validates entire plan
-6. **Feedback Incorporation** - Address any final issues
+Plans written in one pass hit context limits. Plans written in batches don't.
 
-**Key innovation:** Plans written in batches by fresh agents with incremental reviews. Scales to any plan size while maintaining quality.
+**Core principle:** Fresh agents per batch. Reviews before next batch. No compromises.
+
+```
+BATCH SIZE MATTERS. TOO LARGE = PLACEHOLDERS. TOO SMALL = OVERHEAD.
+```
+
+1. **Task Outline** - Goals and connections, not code
+2. **Gap Analysis** - Opus finds what you missed
+3. **Batched Planning** - 5-8 tasks per fresh agent
+4. **Incremental Reviews** - Each batch approved before next
+5. **Final Review** - End-to-end validation
+
+**Use for:** 8+ tasks, complex features, anything that matters
 
 **Output:** `docs/<feature-name>/plan.md`
-
-**Use for:** 8+ tasks, complex features, production work
-**Use:** `/implementation-planning-orchestrator` (auto-invoked by `/plan-from-design`)
 
 ### `implementation-planning`
-Single-agent implementation planning for simple, straightforward plans (< 5-7 tasks).
 
-**The Three-Phase Approach:**
-1. **Phase 1: Task Outline** - Goals, inputs, outputs, dependencies
-2. **Phase 2: Gap Analysis** - Opus subagent reviews, iterate if needed
-3. **Phase 3: Detailed Plan** - Write complete implementation in one pass
-4. **Phase 4: Final Review** - Opus subagent verifies executability
+For simple plans that fit in one agent's context.
 
-**Output:** `docs/<feature-name>/plan.md`
-
-**Use for:** Simple plans with few straightforward tasks
-**Use:** `/implementation-planning`
-
-**When in doubt, use orchestrator** - it handles any complexity gracefully.
+Same rigor, fewer agents. Use when you have < 5-7 straightforward tasks.
 
 ### `go-agents`
-Execute implementation plans with resumable subagents, agent-to-agent communication via resume, and batched reviews.
 
-**Key features:**
-- Resume agents for questions (true agent-to-agent communication)
-- Reuse agents while context allows (efficient)
-- Batch reviews after agent exhaustion (not per-task)
-- Unified reviewer (spec + code quality combined)
+Execute plans with agents that remember.
 
-**Use:** `/execute-plan <path-to-plan>`
+**Core principle:** Resume > re-dispatch. Context is expensive.
+
+- Agents answer questions via resume (true agent-to-agent communication)
+- Agents continue with next task while context allows
+- Batch review after agent exhaustion, not per-task
+- Unified reviewer checks spec AND quality in one pass
 
 ### `fix-feature-bugs`
-Orchestrates bug fixing after plan execution. Bootstraps from feature docs, triages bugs, dispatches fix subagents with full context, and handles escalation.
 
-**The Flow:**
-1. **Bootstrap** - Read design.md, bugs.md; search plan.md for relevant sections
-2. **Triage** - Categorize bugs, group related ones, gather code sites
+Implementation rarely ends clean. Plan for the cleanup.
+
+**Core principle:** Context is expensive. Transfer it, don't rebuild it.
+
+```
+IMPLEMENTATION COMPLETE ≠ FEATURE COMPLETE
+```
+
+1. **Bootstrap** - Read design.md and bugs.md fully, search plan.md
+2. **Triage** - Categorize, group related bugs, gather code sites
 3. **Dispatch** - Subagent per bug group with full context
 4. **Handle Returns** - Fixed, rubber-duck, or design gap
-5. **Collect** - Update bugs.md, verify fixes
+5. **Collect** - Update bugs.md, verify all fixes
 
-**Output:** Updated `docs/<feature-name>/bugs.md`
-
-**Use:** `/fix-feature-bugs <feature-dir> <bug descriptions>`
+**Output:** `docs/<feature-name>/bugs.md`
 
 ### `rubber-duck`
-Structured prompt-writing for stuck bugs. When you can't figure out why something isn't working, writing a detailed explanation often reveals the answer.
+
+When you can't figure out why something isn't working, explain it to someone else. Half the time, you'll solve it mid-sentence.
 
 **Core principle:** Writing the explanation IS the debugging. The prompt is a side effect.
 
-**When to invoke:**
-- After 2 failed fix attempts
-- When uncertain ("I'm not sure why...")
+```
+IF YOU CAN'T EXPLAIN IT CLEARLY, YOU DON'T UNDERSTAND IT YET
+```
+
+**Triggers:**
+- 2 failed fix attempts
+- "I'm not sure why this isn't working"
 - Explicit request
 
-**The Process:**
-1. Write detailed prompt explaining the bug to "another LLM"
-2. Pause - often self-resolves during writing
-3. If stuck: offer consultation (external LLM or Opus agent)
+**Process:**
+1. Write detailed prompt explaining the bug
+2. Pause - did writing reveal the answer?
+3. If still stuck: consult external LLM or Opus agent
 4. If still stuck: escalate to systematic-debugging
-
-**Use:** Automatically invoked by `fix-feature-bugs` subagents, or manually
 
 ---
 
 ## The Escalation Ladder
+
+```
+ESCALATE ON EVIDENCE, NOT FRUSTRATION
+```
 
 When bugs resist fixing, escalate methodically:
 
@@ -111,198 +138,176 @@ Direct Fix (subagent attempts)
      ▼ (2 fails OR uncertainty)
 Rubber-Duck (write explanation prompt)
      │
-     ├─► Self-resolved → apply fix → done
+     ├─► Self-resolved → done
      │
      ▼ (still stuck)
 Consultation (external LLM or Opus agent)
      │
-     ├─► Resolved → apply fix → done
+     ├─► Resolved → done
      │
      ▼ (still stuck)
 Systematic Debugging (full 4-phase investigation)
      │
-     ├─► Root cause found → fix → done
+     ├─► Root cause found → done
      │
      ▼ (reveals architectural issue)
-Brainstorm-to-Design (design gap)
+Brainstorm-to-Design (it's not a bug, it's a design gap)
 ```
+
+---
+
+## What Opus Says No To
+
+| Shortcut | Why It Fails | What To Do Instead |
+|----------|--------------|-------------------|
+| "Skip the design review" | Gaps bake into the plan | Adversarial review catches them |
+| "I'll add tests later" | You won't. And if you do, they'll be weak. | TDD or write tests with the plan |
+| "Just try this fix" | Fix #3, #4, #5 are coming | Rubber-duck after 2 failures |
+| "The plan looks complete" | To you. Fresh eyes see differently. | Gap analysis with Opus subagent |
+| "I'll remember the context" | You won't. Next session starts cold. | Write to docs/<feature>/ |
+| "One more fix attempt" | You've been saying that for an hour | Escalate. Rubber-duck or systematic. |
+| "It's a simple bug" | Simple bugs that resist 2 fixes aren't simple | Follow the escalation ladder |
+| "I don't need the full process" | That's what everyone thinks before wasting 3 hours | The process IS the shortcut |
 
 ---
 
 ## Installation
 
 ```bash
-# Clone or navigate to this repo
 cd ~/projects/claude-custom-skills
 
-# Preview what will be installed
+# Preview
 ./install.sh --dry-run
 
-# Install skills, prompts, and commands
+# Install
 ./install.sh
 ```
 
 ## Uninstallation
 
 ```bash
-# Preview what will be removed
 ./uninstall.sh --dry-run
-
-# Remove skills
 ./uninstall.sh
 ```
 
-## Workflow Diagram
+---
+
+## The Workflow
 
 ```mermaid
 flowchart TD
     Start([New Feature]) --> Brainstorm[/brainstorming-to-plan/]
-    Brainstorm --> Explore[Explore & Decide<br/>9 Phases]
-    Explore --> DesignReview{{Design Review<br/>Opus Subagent}}
+    Brainstorm --> Explore[Explore & Decide]
+    Explore --> DesignReview{{Design Review<br/>Opus Says No?}}
     DesignReview -->|Iterate| Explore
     DesignReview -->|Approved| DesignDoc[(design.md)]
 
     DesignDoc --> PlanCmd[/plan-from-design/]
     PlanCmd --> Assess{Complexity?}
 
-    Assess -->|Simple<br/>< 5-7 tasks| Simple[/implementation-planning/]
-    Simple --> SimplePlan[3 Phases + Reviews]
-    SimplePlan --> PlanDoc[(plan.md)]
+    Assess -->|Simple| Simple[/implementation-planning/]
+    Simple --> PlanDoc[(plan.md)]
 
-    Assess -->|Complex<br/>8+ tasks| Orch[/implementation-planning-orchestrator/]
+    Assess -->|Complex| Orch[/implementation-planning-orchestrator/]
     Orch --> Outline[Task Outline]
-    Outline --> GapReview{{Gap Analysis<br/>Opus Subagent}}
+    Outline --> GapReview{{Gap Analysis<br/>Opus Says No?}}
     GapReview -->|Iterate| Outline
     GapReview -->|Clean| BatchLoop[Batch Loop]
 
-    BatchLoop --> Writer[Fresh Writer<br/>Per Batch]
-    Writer --> BatchReview{{Batch Review<br/>Opus Subagent}}
+    BatchLoop --> Writer[Fresh Writer]
+    Writer --> BatchReview{{Batch Review<br/>Opus Says No?}}
     BatchReview -->|Iterate| Writer
-    BatchReview -->|Next Batch| BatchLoop
-    BatchReview -->|All Done| FinalReview{{Final Review<br/>Opus Subagent}}
+    BatchReview -->|Next| BatchLoop
+    BatchReview -->|Done| FinalReview{{Final Review}}
     FinalReview --> PlanDoc
 
     PlanDoc --> ExecCmd[/execute-plan/]
     ExecCmd --> GoAgents[/go-agents/]
-    GoAgents --> Impl[Implementers<br/>Resume Pattern]
-    Impl --> UnifiedReview{{Unified Review<br/>Spec + Code}}
+    GoAgents --> Impl[Implementers]
+    Impl --> UnifiedReview{{Unified Review}}
     UnifiedReview -->|Iterate| Impl
-    UnifiedReview -->|Bugs Remain| FixBugs[/fix-feature-bugs/]
-    UnifiedReview -->|All Clear| Done([Complete!])
+    UnifiedReview -->|Bugs| FixBugs[/fix-feature-bugs/]
+    UnifiedReview -->|Clean| Done([Complete!])
 
-    FixBugs --> Triage[Triage & Dispatch]
+    FixBugs --> Triage[Triage]
     Triage --> FixAgent[Fix Subagents]
     FixAgent -->|2 Fails| RubberDuck[/rubber-duck/]
-    RubberDuck -->|Self-Resolved| FixAgent
-    RubberDuck -->|Consult| Consultation{{Opus Consultation}}
-    Consultation --> FixAgent
+    RubberDuck --> FixAgent
     FixAgent -->|Design Gap| Brainstorm
     FixAgent -->|Fixed| BugsDoc[(bugs.md)]
-    BugsDoc -->|More Bugs| Triage
-    BugsDoc -->|All Fixed| Done
+    BugsDoc -->|More| Triage
+    BugsDoc -->|Done| Done
 
     classDef reviewNode fill:#ff6b6b,stroke:#c92a2a,color:#fff
     classDef cmdNode fill:#ffd43b,stroke:#f59f00,color:#000
     classDef docNode fill:#51cf66,stroke:#2f9e44,color:#fff
 
-    class DesignReview,GapReview,BatchReview,FinalReview,UnifiedReview,Consultation reviewNode
+    class DesignReview,GapReview,BatchReview,FinalReview,UnifiedReview reviewNode
     class Brainstorm,PlanCmd,Simple,Orch,ExecCmd,GoAgents,FixBugs,RubberDuck cmdNode
     class DesignDoc,PlanDoc,BugsDoc docNode
 ```
 
-**Legend:** Yellow = Commands/Skills | Red = Reviews (Opus) | Green = Documents
-
-For detailed workflow, see [workflow-diagram.md](workflow-diagram.md)
+**Legend:** 🟡 Skills | 🔴 Reviews (Opus Says No?) | 🟢 Documents
 
 ---
 
 ## Text Workflow
 
-For new features or complex tasks:
-
 ```
-/brainstorming-to-plan              # Explore and decide (includes design review)
-        ↓                           # Output: docs/<feature>/design.md
-/plan-from-design <design-doc>      # Create implementation plan from design
-        ↓                           # Output: docs/<feature>/plan.md
-/execute-plan <plan-file>           # Coordinated execution with subagents
+/brainstorming-to-plan              # Explore. Decide. Review.
+        ↓                           # → docs/<feature>/design.md
+/plan-from-design <design>          # Outline. Gap analysis. Detail. Review.
+        ↓                           # → docs/<feature>/plan.md
+/execute-plan <plan>                # Implement. Resume. Review.
         ↓
-/fix-feature-bugs <feature> <bugs>  # Fix remaining bugs (if any)
-                                    # Output: docs/<feature>/bugs.md
-```
-
-For well-defined tasks where you know the approach:
-
-```
-/implementation-planning            # Plan with gap analysis
-        ↓
-/execute-plan <plan-file>           # Coordinated execution with subagents
+/fix-feature-bugs <feature> <bugs>  # Bootstrap. Triage. Fix. Escalate.
+                                    # → docs/<feature>/bugs.md
 ```
 
 ---
 
 ## Feature Docs Convention
 
-All feature artifacts live together in `docs/<feature-name>/`:
+All feature artifacts live together. Fresh sessions bootstrap from here.
 
 ```
 docs/
 └── <feature-name>/
-    ├── design.md      # From brainstorming-to-plan
-    │                  # Architecture, decisions, trade-offs
-    │
-    ├── plan.md        # From implementation-planning
-    │                  # Tasks, code locations, integration points
-    │
-    ├── bugs.md        # Living document (from fix-feature-bugs)
-    │                  # Found, fixed, remaining, discoveries
-    │
-    └── ...            # Other artifacts as needed
+    ├── design.md      # Architecture, decisions, trade-offs
+    ├── plan.md        # Tasks, code, integration points
+    ├── bugs.md        # Found, fixed, remaining
+    └── ...            # Whatever else accumulates
 ```
 
-**Naming:** Use kebab-case, match branch name when possible
-**Examples:** `user-auth`, `metrics-export`, `dark-mode-toggle`
+**Naming:** kebab-case, match branch name when possible
 
 ---
 
-## Commands Included
+## Commands
 
 ### `/plan-from-design <path>`
-Create an implementation plan from a design document.
 
-**Usage:** `/plan-from-design docs/user-auth/design.md`
+```
+/plan-from-design docs/user-auth/design.md
+```
 
-This command loads your design document and invokes `implementation-planning`, which will:
-- Create a task outline based on your design
-- Run gap analysis with Opus subagent
-- Write the detailed implementation plan
-- Run final plan review with Opus subagent
-- Output the `/execute-plan` command to run it
+Creates implementation plan with gap analysis and review.
 
 ### `/execute-plan <path>`
-Execute an implementation plan using coordinated subagent orchestration.
 
-**Usage:** `/execute-plan docs/user-auth/plan.md`
+```
+/execute-plan docs/user-auth/plan.md
+```
 
-This command loads the plan and invokes `go-agents`, which:
-- Extracts tasks from the plan
-- Dispatches implementer subagents
-- Resumes agents for questions and additional tasks
-- Batch reviews when agents exhaust context
-- Completes with finishing-a-development-branch
+Executes plan with go-agents (resumable subagents, batched reviews).
 
 ### `/fix-feature-bugs <feature-dir> <bugs>`
-Fix bugs remaining after plan execution.
 
-**Usage:** `/fix-feature-bugs user-auth "Login fails silently; Password reset not sent"`
+```
+/fix-feature-bugs user-auth "Login fails silently; Password reset not sent"
+```
 
-This command bootstraps from feature docs and:
-- Reads design.md and bugs.md fully
-- Searches plan.md for relevant sections
-- Triages and groups bugs
-- Dispatches fix subagents with full context
-- Handles escalation (rubber-duck, consultation, design gap)
-- Updates bugs.md with results
+Bootstraps from feature docs, triages, dispatches fix subagents, handles escalation.
 
 ---
 
@@ -310,91 +315,51 @@ This command bootstraps from feature docs and:
 
 ```
 claude-custom-skills/
-├── README.md
-├── install.sh                                    # Install skills, prompts, and commands
-├── uninstall.sh                                  # Remove installed files
 ├── skills/
-│   ├── brainstorming-to-plan/
-│   │   ├── SKILL.md                              # Main skill
-│   │   └── design-review.md                      # Design review prompt
-│   ├── implementation-planning/                  # Simple plans (< 5-7 tasks)
-│   │   ├── SKILL.md                              # Main skill
-│   │   ├── gap-analysis-review.md                # Gap analysis prompt
-│   │   └── plan-review.md                        # Final review prompt
-│   ├── implementation-planning-orchestrator/     # Complex plans (8+ tasks) - Recommended
-│   │   ├── SKILL.md                              # Orchestrator skill
-│   │   ├── gap-analysis-review.md                # Gap analysis prompt
-│   │   ├── batch-plan-writer.md                  # Batch writing prompt
-│   │   ├── batch-plan-reviewer.md                # Batch review prompt
-│   │   └── plan-review.md                        # Final review prompt
-│   ├── go-agents/                                # Execution coordination
-│   │   ├── SKILL.md
-│   │   ├── implementer-prompt.md
-│   │   └── unified-reviewer-prompt.md
-│   ├── fix-feature-bugs/                         # Post-implementation bug fixing
-│   │   ├── SKILL.md
-│   │   └── bug-fixer-prompt.md                   # Subagent dispatch template
-│   └── rubber-duck/                              # Stuck bug escalation
-│       ├── SKILL.md
-│       └── opus-consultation-prompt.md           # Fresh perspective analysis
-├── prompts/                                      # Shared prompts
-│   ├── design-review.md
-│   ├── gap-analysis-review.md
-│   ├── batch-plan-writer.md
-│   ├── batch-plan-reviewer.md
-│   └── plan-review.md
-└── commands/
-    ├── plan-from-design.md                       # Create plan from design doc
-    ├── execute-plan.md                           # Execute plan with subagents
-    └── fix-feature-bugs.md                       # Fix post-implementation bugs
+│   ├── brainstorming-to-plan/      # Explore → Design → Review
+│   ├── implementation-planning/     # Simple plans (< 5-7 tasks)
+│   ├── implementation-planning-orchestrator/  # Complex plans (8+ tasks)
+│   ├── go-agents/                   # Resumable execution
+│   ├── fix-feature-bugs/            # Post-implementation bugs
+│   └── rubber-duck/                 # Stuck bug escalation
+├── prompts/                         # Shared review prompts
+├── commands/                        # Entry points
+├── install.sh
+└── uninstall.sh
 ```
 
-The install script copies:
-- Skills → `~/.claude/skills/`
-- Prompts → `~/.claude/prompts/`
-- Commands → `~/.claude/commands/`
+---
 
-## Adding New Skills
+## Why This Exists
 
-1. Create a new directory in `skills/` with a `SKILL.md` file
-2. Follow the skill format with YAML frontmatter:
-   ```yaml
-   ---
-   name: my-skill
-   description: What this skill does
-   model: claude-opus-4-5-20251101  # optional
-   ---
-   ```
-3. Add supporting prompts in the same directory
-4. Run `./install.sh` to deploy
+The default approach produces plans with gaps. Agents hit context limits and leave placeholders. Reviews get skipped "just this once." Bugs get fixed with "let me try one more thing" until you've burned three hours.
 
-## Why These Skills?
+**This is what Opus says no to.**
 
-The default planning approach often produces plans with gaps - missing integration points, tasks that don't connect, incomplete wiring, or unclear instructions. Even worse, agents hit context limits on complex plans and resort to placeholders. These skills solve both problems:
+### The Multi-Layered Review System
 
-### Multi-Layered Adversarial Review
-1. **Design review (brainstorming)** - Fresh Opus subagent challenges designs before planning
-2. **Gap analysis (planning)** - Fresh Opus subagent finds structural gaps in task outlines
-3. **Incremental batch reviews** - Each batch of tasks reviewed before next begins
-4. **Final plan review** - Fresh Opus subagent verifies complete executability
-5. **Using Opus for all reviews** - Better reasoning for catching subtle gaps
+1. **Design review** - Fresh Opus challenges designs before planning
+2. **Gap analysis** - Fresh Opus finds structural gaps in outlines
+3. **Batch reviews** - Each batch reviewed before next begins
+4. **Final review** - Fresh Opus verifies end-to-end executability
+5. **Unified code review** - Spec compliance + quality in one pass
 
-### Scalable Planning Architecture
-6. **Batched planning** - Plans written in 5-8 task batches by fresh agents
-7. **No context limits** - Each batch agent starts fresh with room for review feedback
-8. **Incremental quality** - Issues caught and fixed per batch, not at the end
-9. **Resumable agents** - Writers can incorporate feedback via resume, not restart
+### The Scalable Planning Architecture
 
-### Complete Workflow
-10. **Separating exploration from planning** - Brainstorm with Gherkin scenarios first
-11. **Iterating at each stage** - Fix issues before moving to next phase
-12. **Subagent-driven execution** - Coordinated implementation with dependency management
-13. **Structured bug fixing** - Post-implementation bugs handled with context and escalation
+- Plans written in 5-8 task batches by fresh agents
+- No context limits because each batch starts fresh
+- Issues caught per batch, not at the end
+- Writers resume for feedback instead of restarting
 
-### Smart Bug Fixing
-14. **Context bootstrapping** - Fresh sessions start with full feature context from docs
-15. **Escalation ladder** - Direct fix → Rubber-duck → Consultation → Systematic debugging
-16. **Design gap detection** - Bugs that reveal missing design escalate to brainstorming
-17. **Rubber-duck debugging** - Writing the explanation often reveals the solution
+### The Structured Bug Fixing
 
-**Result:** Gap-free, complete plans at any scale with no placeholders or context-limit compromises, plus structured bug fixing when implementation doesn't go perfectly.
+- Context bootstraps from docs/<feature>/
+- Escalation ladder prevents thrashing
+- Design gaps escalate to brainstorming
+- Rubber-duck catches what persistence misses
+
+---
+
+```
+THE PROCESS IS THE SHORTCUT.
+```
