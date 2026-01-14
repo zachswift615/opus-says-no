@@ -74,7 +74,7 @@ BATCH SIZE MATTERS. TOO LARGE = PLACEHOLDERS. TOO SMALL = OVERHEAD.
 
 Draw the plan before you build.
 
-Same rigor, fewer agents. Use when you have < 5-7 straightforward tasks.
+Same rigor, single agent. Use when you have < 5-7 straightforward tasks.
 
 ### `go-time`
 
