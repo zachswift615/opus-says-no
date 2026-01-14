@@ -1,26 +1,28 @@
 ---
-name: implementation-planning
+name: blueprint
 description: Three-phase implementation planning with adversarial gap analysis. Use when you have requirements and need a comprehensive, gap-free implementation plan.
 model: claude-opus-4-5-20251101
 ---
 
-# Implementation Planning (Gap-Free Plans)
+# Blueprint
+
+Draw the plan before you build.
 
 ## Overview
 
 Create comprehensive implementation plans using a three-phase approach that catches gaps before they get baked into detailed steps. This skill produces plans that are complete, connected, and executable.
 
-**Announce at start:** "I'm using implementation-planning to create a gap-free implementation plan."
+**Announce at start:** "I'm using blueprint to create a gap-free implementation plan."
 
 **Save plans to:** `docs/<feature-name>/plan.md`
 
-**Feature directory:** Should already exist from brainstorming-to-plan with `design.md`. If not, create it.
+**Feature directory:** Should already exist from dream-first with `design.md`. If not, create it.
 
 ## Choose Your Planning Approach
 
 **Before starting, assess plan complexity:**
 
-### Use implementation-planning-orchestrator if:
+### Use blueprint-maestro if:
 - Plan will have **8+ tasks**
 - Tasks have **mixed complexity** (simple + complex)
 - Tasks are **highly complex** (algorithms, major refactors)
@@ -29,7 +31,7 @@ Create comprehensive implementation plans using a three-phase approach that catc
 
 **Why orchestrator?** Writes plan in batches with fresh agents, avoiding context limits and maintaining quality throughout.
 
-### Use this skill (implementation-planning) if:
+### Use this skill (blueprint) if:
 - Plan is **simple** (< 5-7 straightforward tasks)
 - All tasks are **similar complexity**
 - Single agent can complete it comfortably
@@ -363,12 +365,12 @@ After both reviews are complete and all critical issues are resolved, hand off t
 /execute-plan docs/<feature-name>/plan.md
 ```
 
-This command will load the plan and invoke go-agents for coordinated execution.
+This command will load the plan and invoke go-time for coordinated execution.
 
 **After execution, if bugs remain:**
 
 ```
-/fix-feature-bugs <feature-name> <bug descriptions>
+/patch-party <feature-name> <bug descriptions>
 ```
 
 ---

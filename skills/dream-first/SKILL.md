@@ -1,14 +1,16 @@
 ---
-name: brainstorming-to-plan
-description: Explore requirements and design before implementation. Use when starting any feature work to clarify goals, explore approaches, and flow into implementation-planning.
+name: dream-first
+description: Explore requirements and design before implementation. Use when starting any feature work to clarify goals, explore approaches, and dream it up before you build it.
 model: claude-opus-4-5-20251101
 ---
 
-# Brainstorming Ideas Into Designs
+# Dream First
+
+Don't start coding until you know what you're building.
 
 ## Overview
 
-Help turn ideas into fully formed designs and specs through natural collaborative dialogue.
+Help turn ideas into fully formed designs through natural collaborative dialogue.
 
 Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design in small sections (200-300 words), checking after each section whether it looks right so far.
 
@@ -218,13 +220,13 @@ Once design is validated and reviewed, hand off to implementation planning.
 /plan-from-design docs/<feature-name>/design.md
 ```
 
-This command will assess complexity and invoke the appropriate planning skill (implementation-planning or implementation-planning-orchestrator).
+This command will assess complexity and invoke the appropriate planning skill (blueprint or blueprint-maestro).
 
 ---
 
 ## When to Use This Skill
 
-**Use brainstorming-to-plan when:**
+**Use dream-first when:**
 - Starting a new feature
 - Facing a non-trivial technical decision
 - Multiple valid approaches exist

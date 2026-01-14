@@ -32,7 +32,7 @@ Every shortcut in planning becomes a bug in implementation. Every skipped review
 
 ## Skills Included
 
-### `brainstorming-to-plan`
+### `dream-first`
 
 Don't start coding until you know what you're building.
 
@@ -50,9 +50,9 @@ Don't start coding until you know what you're building.
 
 **Output:** `docs/<feature-name>/design.md`
 
-### `implementation-planning-orchestrator` (Recommended)
+### `blueprint-maestro` (Recommended)
 
-Plans written in one pass hit context limits. Plans written in batches don't.
+The conductor for complex plans.
 
 **Core principle:** Fresh agents per batch. Reviews before next batch. No compromises.
 
@@ -70,15 +70,15 @@ BATCH SIZE MATTERS. TOO LARGE = PLACEHOLDERS. TOO SMALL = OVERHEAD.
 
 **Output:** `docs/<feature-name>/plan.md`
 
-### `implementation-planning`
+### `blueprint`
 
-For simple plans that fit in one agent's context.
+Draw the plan before you build.
 
 Same rigor, fewer agents. Use when you have < 5-7 straightforward tasks.
 
-### `go-agents`
+### `go-time`
 
-Execute plans with agents that remember.
+Time to make it real.
 
 **Core principle:** Resume > re-dispatch. Context is expensive.
 
@@ -87,9 +87,9 @@ Execute plans with agents that remember.
 - Batch review after agent exhaustion, not per-task
 - Unified reviewer checks spec AND quality in one pass
 
-### `fix-feature-bugs`
+### `patch-party`
 
-Implementation rarely ends clean. Plan for the cleanup.
+Implementation rarely ends clean. Time to clean up.
 
 **Core principle:** Context is expensive. Transfer it, don't rebuild it.
 
@@ -155,7 +155,7 @@ Systematic Debugging (full 4-phase investigation)
      ├─► Root cause found → done
      │
      ▼ (reveals architectural issue)
-Brainstorm-to-Design (it's not a bug, it's a design gap)
+Dream-First (it's not a bug, it's a design gap)
 ```
 
 ---
@@ -172,6 +172,21 @@ Brainstorm-to-Design (it's not a bug, it's a design gap)
 | "One more fix attempt" | You've been saying that for an hour | Escalate. Rubber-duck or systematic. |
 | "It's a simple bug" | Simple bugs that resist 2 fixes aren't simple | Follow the escalation ladder |
 | "I don't need the full process" | That's what everyone thinks before wasting 3 hours | The process IS the shortcut |
+
+---
+
+## Quick Start
+
+For any new feature:
+
+```
+/dream-first                        # What are we building?
+/plan-from-design docs/<f>/design.md  # How are we building it?
+/execute-plan docs/<f>/plan.md      # Build it.
+/patch-party <f> <bugs>             # Fix what's left.
+```
+
+If you skip steps, Opus will punish you later.
 
 ---
 
@@ -200,8 +215,8 @@ cd ~/projects/claude-custom-skills
 
 ```mermaid
 flowchart TD
-    Start([New Feature]) --> Brainstorm[/brainstorming-to-plan/]
-    Brainstorm --> Explore[Explore & Decide]
+    Start([New Feature]) --> DreamFirst[/dream-first/]
+    DreamFirst --> Explore[Explore & Decide]
     Explore --> DesignReview{{Design Review<br/>Opus Says No?}}
     DesignReview -->|Iterate| Explore
     DesignReview -->|Approved| DesignDoc[(design.md)]
@@ -209,11 +224,11 @@ flowchart TD
     DesignDoc --> PlanCmd[/plan-from-design/]
     PlanCmd --> Assess{Complexity?}
 
-    Assess -->|Simple| Simple[/implementation-planning/]
-    Simple --> PlanDoc[(plan.md)]
+    Assess -->|Simple| Blueprint[/blueprint/]
+    Blueprint --> PlanDoc[(plan.md)]
 
-    Assess -->|Complex| Orch[/implementation-planning-orchestrator/]
-    Orch --> Outline[Task Outline]
+    Assess -->|Complex| Maestro[/blueprint-maestro/]
+    Maestro --> Outline[Task Outline]
     Outline --> GapReview{{Gap Analysis<br/>Opus Says No?}}
     GapReview -->|Iterate| Outline
     GapReview -->|Clean| BatchLoop[Batch Loop]
@@ -226,18 +241,18 @@ flowchart TD
     FinalReview --> PlanDoc
 
     PlanDoc --> ExecCmd[/execute-plan/]
-    ExecCmd --> GoAgents[/go-agents/]
-    GoAgents --> Impl[Implementers]
+    ExecCmd --> GoTime[/go-time/]
+    GoTime --> Impl[Implementers]
     Impl --> UnifiedReview{{Unified Review}}
     UnifiedReview -->|Iterate| Impl
-    UnifiedReview -->|Bugs| FixBugs[/fix-feature-bugs/]
+    UnifiedReview -->|Bugs| PatchParty[/patch-party/]
     UnifiedReview -->|Clean| Done([Complete!])
 
-    FixBugs --> Triage[Triage]
+    PatchParty --> Triage[Triage]
     Triage --> FixAgent[Fix Subagents]
     FixAgent -->|2 Fails| RubberDuck[/rubber-duck/]
     RubberDuck --> FixAgent
-    FixAgent -->|Design Gap| Brainstorm
+    FixAgent -->|Design Gap| DreamFirst
     FixAgent -->|Fixed| BugsDoc[(bugs.md)]
     BugsDoc -->|More| Triage
     BugsDoc -->|Done| Done
@@ -247,7 +262,7 @@ flowchart TD
     classDef docNode fill:#51cf66,stroke:#2f9e44,color:#fff
 
     class DesignReview,GapReview,BatchReview,FinalReview,UnifiedReview reviewNode
-    class Brainstorm,PlanCmd,Simple,Orch,ExecCmd,GoAgents,FixBugs,RubberDuck cmdNode
+    class DreamFirst,PlanCmd,Blueprint,Maestro,ExecCmd,GoTime,PatchParty,RubberDuck cmdNode
     class DesignDoc,PlanDoc,BugsDoc docNode
 ```
 
@@ -258,14 +273,14 @@ flowchart TD
 ## Text Workflow
 
 ```
-/brainstorming-to-plan              # Explore. Decide. Review.
-        ↓                           # → docs/<feature>/design.md
-/plan-from-design <design>          # Outline. Gap analysis. Detail. Review.
-        ↓                           # → docs/<feature>/plan.md
-/execute-plan <plan>                # Implement. Resume. Review.
+/dream-first                   # Explore. Decide. Review.
+        ↓                      # → docs/<feature>/design.md
+/plan-from-design <design>     # Outline. Gap analysis. Detail. Review.
+        ↓                      # → docs/<feature>/plan.md
+/execute-plan <plan>           # Implement. Resume. Review.
         ↓
-/fix-feature-bugs <feature> <bugs>  # Bootstrap. Triage. Fix. Escalate.
-                                    # → docs/<feature>/bugs.md
+/patch-party <feature> <bugs>  # Bootstrap. Triage. Fix. Escalate.
+                               # → docs/<feature>/bugs.md
 ```
 
 ---
@@ -303,12 +318,12 @@ Creates implementation plan with gap analysis and review.
 /execute-plan docs/user-auth/plan.md
 ```
 
-Executes plan with go-agents (resumable subagents, batched reviews).
+Executes plan with go-time (resumable subagents, batched reviews).
 
-### `/fix-feature-bugs <feature-dir> <bugs>`
+### `/patch-party <feature-dir> <bugs>`
 
 ```
-/fix-feature-bugs user-auth "Login fails silently; Password reset not sent"
+/patch-party user-auth "Login fails silently; Password reset not sent"
 ```
 
 Bootstraps from feature docs, triages, dispatches fix subagents, handles escalation.
@@ -320,14 +335,14 @@ Bootstraps from feature docs, triages, dispatches fix subagents, handles escalat
 ```
 claude-custom-skills/
 ├── skills/
-│   ├── brainstorming-to-plan/      # Explore → Design → Review
-│   ├── implementation-planning/     # Simple plans (< 5-7 tasks)
-│   ├── implementation-planning-orchestrator/  # Complex plans (8+ tasks)
-│   ├── go-agents/                   # Resumable execution
-│   ├── fix-feature-bugs/            # Post-implementation bugs
-│   └── rubber-duck/                 # Stuck bug escalation
-├── prompts/                         # Shared review prompts
-├── commands/                        # Entry points
+│   ├── dream-first/           # Explore → Design → Review
+│   ├── blueprint/             # Simple plans (< 5-7 tasks)
+│   ├── blueprint-maestro/     # Complex plans (8+ tasks)
+│   ├── go-time/               # Resumable execution
+│   ├── patch-party/           # Post-implementation bugs
+│   └── rubber-duck/           # Stuck bug escalation
+├── prompts/                   # Shared review prompts
+├── commands/                  # Entry points
 ├── install.sh
 └── uninstall.sh
 ```
@@ -359,7 +374,7 @@ The default approach produces plans with gaps. Agents hit context limits and lea
 
 - Context bootstraps from docs/<feature>/
 - Escalation ladder prevents thrashing
-- Design gaps escalate to brainstorming
+- Design gaps escalate to dreaming
 - Rubber-duck catches what persistence misses
 
 ---

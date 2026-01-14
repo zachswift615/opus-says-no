@@ -1,9 +1,11 @@
 ---
-name: fix-feature-bugs
+name: patch-party
 description: Use after plan execution when bugs remain. Bootstraps from feature docs, triages bugs, dispatches fix subagents with full context, and handles escalation to rubber-duck or design review.
 ---
 
-# Fix Feature Bugs
+# Patch Party
+
+Implementation rarely ends clean. Time to clean up.
 
 ## Overview
 
@@ -17,7 +19,7 @@ CONTEXT IS EXPENSIVE. TRANSFER IT, DON'T REBUILD IT.
 
 ## When to Use
 
-**Use fix-feature-bugs when:**
+**Use patch-party when:**
 - Implementation plan execution completed but bugs remain
 - Starting fresh session to address known bugs
 - User provides bug list for a feature with existing docs
@@ -30,7 +32,7 @@ CONTEXT IS EXPENSIVE. TRANSFER IT, DON'T REBUILD IT.
 **Don't use when:**
 - No feature docs exist (create them first or use ad-hoc debugging)
 - Single trivial bug (just fix it directly)
-- Bug reveals fundamental design flaw (go to brainstorm-to-design)
+- Bug reveals fundamental design flaw (go to dream-first)
 
 ## The Process
 
@@ -45,7 +47,7 @@ CONTEXT IS EXPENSIVE. TRANSFER IT, DON'T REBUILD IT.
    └─ Categorize bugs (simple / complex / uncertain)
    └─ Group related bugs together
    └─ Gather relevant code sites for each bug/group
-   └─ Detect design gaps → escalate to brainstorm-to-design
+   └─ Detect design gaps → escalate to dream-first
 
 3. Dispatch
    └─ Subagent per bug group (related bugs together)
@@ -144,7 +146,7 @@ This bug appears to be a design gap, not an implementation bug.
 Evidence:
 - [Why this indicates missing design]
 
-Recommend escalating to brainstorm-to-design to address:
+Recommend escalating to dream-first to address:
 - [What needs to be designed]
 
 Proceed with design review, or attempt fix anyway?
@@ -286,7 +288,7 @@ Updated: docs/<feature>/bugs.md
 
 Next steps:
 - [If remaining bugs: continue fixing]
-- [If design gaps: brainstorm-to-design]
+- [If design gaps: dream-first]
 - [If all clear: finishing-a-development-branch]
 ```
 
@@ -334,11 +336,11 @@ Brainstorm-to-Design (design gap)
 **Works with:**
 - `rubber-duck` - Subagents invoke when stuck
 - `superpowers:systematic-debugging` - Final escalation
-- `brainstorm-to-design` - When design gaps found
+- `dream-first` - When design gaps found
 
 **Output:**
 - Updated `docs/<feature>/bugs.md`
 - Fixed bugs (or clear next steps)
 
 **Invoked via:**
-- `/fix-feature-bugs <feature-dir> <bug descriptions>`
+- `/patch-party <feature-dir> <bug descriptions>`

@@ -1,10 +1,12 @@
 ---
-name: implementation-planning-orchestrator
+name: blueprint-maestro
 description: Orchestrate multi-agent implementation planning with batched writing and incremental reviews for plans of any size
 model: claude-opus-4-5-20251101
 ---
 
-# Implementation Planning Orchestrator
+# Blueprint Maestro
+
+The conductor for complex plans.
 
 ## Overview
 
@@ -12,11 +14,11 @@ Coordinate multiple agents to create comprehensive implementation plans without 
 
 **Key innovation:** Plans are written in batches by fresh agents, with each batch reviewed before the next begins. This allows plans of any size while maintaining quality and completeness.
 
-**Announce at start:** "I'm using implementation-planning-orchestrator to create a scalable, gap-free implementation plan."
+**Announce at start:** "I'm using blueprint-maestro to create a scalable, gap-free implementation plan."
 
 **Save plans to:** `docs/<feature-name>/plan.md`
 
-**Feature directory:** Should already exist from brainstorming-to-plan with `design.md`. If not, create it.
+**Feature directory:** Should already exist from dream-first with `design.md`. If not, create it.
 
 ---
 
@@ -486,12 +488,12 @@ Update the plan file with all changes. Mark sections that were updated.
 /execute-plan docs/<feature-name>/plan.md
 ```
 
-This will invoke go-agents for coordinated task execution with resumable subagents.
+This will invoke go-time for coordinated task execution with resumable subagents.
 
 **After execution, if bugs remain:**
 
 ```
-/fix-feature-bugs <feature-name> <bug descriptions>
+/patch-party <feature-name> <bug descriptions>
 ```
 
 ---
@@ -576,13 +578,13 @@ After all batches:
 
 ## When to Use This Skill
 
-**Use implementation-planning-orchestrator when:**
+**Use blueprint-maestro when:**
 - Plan will have 8+ tasks
 - Tasks are complex or varied in complexity
 - Design is comprehensive
 - Want highest quality with any plan size
 
-**Use original implementation-planning when:**
+**Use blueprint when:**
 - Plan is simple (< 5 tasks)
 - All tasks are straightforward
 - Single agent can handle it

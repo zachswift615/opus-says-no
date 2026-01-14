@@ -1,9 +1,11 @@
 ---
-name: go-agents
+name: go-time
 description: Execute implementation plans with resumable subagents, agent-to-agent communication via resume, and batched reviews
 ---
 
-# Go-Agents: Resumable Subagent Development
+# Go Time
+
+Time to make it real.
 
 Execute plans by dispatching subagents that can be resumed for follow-up questions, reused across multiple tasks when context allows, and reviewed in batches.
 

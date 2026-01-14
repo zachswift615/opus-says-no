@@ -1,5 +1,5 @@
 ---
-name: fix-feature-bugs
+name: patch-party
 description: Fix bugs remaining after plan execution. Bootstraps from feature docs, triages bugs, and dispatches fix subagents.
 arguments:
   - name: feature_dir
@@ -10,17 +10,17 @@ arguments:
     required: true
 ---
 
-# Fix Feature Bugs
+# Patch Party
 
-Fix the bugs described below for the **{{feature_dir}}** feature using the **fix-feature-bugs** skill.
+Fix the bugs described below for the **{{feature_dir}}** feature using the **patch-party** skill.
 
 **Feature docs:** `docs/{{feature_dir}}/`
 **Bugs to fix:** {{bugs}}
 
 ## Instructions
 
-1. **Invoke the skill:** Use the Skill tool to invoke `fix-feature-bugs`
-2. **Follow the fix-feature-bugs workflow:**
+1. **Invoke the skill:** Use the Skill tool to invoke `patch-party`
+2. **Follow the patch-party workflow:**
 
 ### Phase 1: Bootstrap
 - Read `docs/{{feature_dir}}/design.md` fully
@@ -40,7 +40,7 @@ Fix the bugs described below for the **{{feature_dir}}** feature using the **fix
 ### Phase 4: Handle Returns
 - Fixed → verify and update bugs.md
 - Rubber-duck → handle consultation (external LLM or Opus)
-- Design gap → discuss escalation to brainstorm-to-design
+- Design gap → discuss escalation to dream-first
 
 ### Phase 5: Collect
 - Update `docs/{{feature_dir}}/bugs.md` with results
@@ -57,4 +57,4 @@ Subagents follow this ladder automatically. If they hit rubber-duck, they return
 
 ## Requirements
 
-Requires the `fix-feature-bugs` and `rubber-duck` skills to be installed.
+Requires the `patch-party` and `rubber-duck` skills to be installed.
