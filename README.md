@@ -180,10 +180,10 @@ Dream-First (it's not a bug, it's a design gap)
 For any new feature:
 
 ```
-/dream-first                        # What are we building?
-/plan-from-design docs/<f>/design.md  # How are we building it?
-/execute-plan docs/<f>/plan.md      # Build it.
-/patch-party <f> <bugs>             # Fix what's left.
+/dream-first                 # What are we building?
+/blueprint <feature>         # How are we building it?
+/go-time <feature>           # Build it.
+/patch-party <feature> "..."  # Fix what's left.
 ```
 
 If you skip steps, Opus will punish you later.
@@ -221,13 +221,13 @@ flowchart TD
     DesignReview -->|Iterate| Explore
     DesignReview -->|Approved| DesignDoc[(design.md)]
 
-    DesignDoc --> PlanCmd[/plan-from-design/]
-    PlanCmd --> Assess{Complexity?}
+    DesignDoc --> BlueprintCmd[/blueprint/]
+    BlueprintCmd --> Assess{Complexity?}
 
-    Assess -->|Simple| Blueprint[/blueprint/]
-    Blueprint --> PlanDoc[(plan.md)]
+    Assess -->|Simple| BlueprintSkill[blueprint skill]
+    BlueprintSkill --> PlanDoc[(plan.md)]
 
-    Assess -->|Complex| Maestro[/blueprint-maestro/]
+    Assess -->|Complex| Maestro[blueprint-maestro]
     Maestro --> Outline[Task Outline]
     Outline --> GapReview{{Gap Analysis<br/>Opus Says No?}}
     GapReview -->|Iterate| Outline
@@ -240,8 +240,8 @@ flowchart TD
     BatchReview -->|Done| FinalReview{{Final Review}}
     FinalReview --> PlanDoc
 
-    PlanDoc --> ExecCmd[/execute-plan/]
-    ExecCmd --> GoTime[/go-time/]
+    PlanDoc --> GoTimeCmd[/go-time/]
+    GoTimeCmd --> GoTime[go-time skill]
     GoTime --> Impl[Implementers]
     Impl --> UnifiedReview{{Unified Review}}
     UnifiedReview -->|Iterate| Impl
@@ -262,7 +262,7 @@ flowchart TD
     classDef docNode fill:#51cf66,stroke:#2f9e44,color:#fff
 
     class DesignReview,GapReview,BatchReview,FinalReview,UnifiedReview reviewNode
-    class DreamFirst,PlanCmd,Blueprint,Maestro,ExecCmd,GoTime,PatchParty,RubberDuck cmdNode
+    class DreamFirst,BlueprintCmd,BlueprintSkill,Maestro,GoTimeCmd,GoTime,PatchParty,RubberDuck cmdNode
     class DesignDoc,PlanDoc,BugsDoc docNode
 ```
 
@@ -275,11 +275,11 @@ flowchart TD
 ```
 /dream-first                   # Explore. Decide. Review.
         ↓                      # → docs/<feature>/design.md
-/plan-from-design <design>     # Outline. Gap analysis. Detail. Review.
+/blueprint <feature>           # Outline. Gap analysis. Detail. Review.
         ↓                      # → docs/<feature>/plan.md
-/execute-plan <plan>           # Implement. Resume. Review.
+/go-time <feature>             # Implement. Resume. Review.
         ↓
-/patch-party <feature> <bugs>  # Bootstrap. Triage. Fix. Escalate.
+/patch-party <feature> "..."   # Bootstrap. Triage. Fix. Escalate.
                                # → docs/<feature>/bugs.md
 ```
 
@@ -304,23 +304,23 @@ docs/
 
 ## Commands
 
-### `/plan-from-design <path>`
+### `/blueprint <feature>`
 
 ```
-/plan-from-design docs/user-auth/design.md
+/blueprint user-auth
 ```
 
-Creates implementation plan with gap analysis and review.
+Creates implementation plan from `docs/<feature>/design.md` with gap analysis and review.
 
-### `/execute-plan <path>`
+### `/go-time <feature>`
 
 ```
-/execute-plan docs/user-auth/plan.md
+/go-time user-auth
 ```
 
-Executes plan with go-time (resumable subagents, batched reviews).
+Executes plan from `docs/<feature>/plan.md` with resumable subagents and batched reviews.
 
-### `/patch-party <feature-dir> <bugs>`
+### `/patch-party <feature> "<bugs>"`
 
 ```
 /patch-party user-auth "Login fails silently; Password reset not sent"
