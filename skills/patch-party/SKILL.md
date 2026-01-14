@@ -174,8 +174,9 @@ For each bug/group, prepare:
 - [ ] No regressions introduced
 
 ## Escalation Rules
-- After 2 failed fix attempts → use rubber-duck skill
-- If uncertain at any point → use rubber-duck skill
+- After 2 failed fix attempts → use rubber-duck
+- If uncertain at any point → use rubber-duck
+- If rubber-duck + consultation don't resolve → use root-canal
 - If this reveals a design gap → report back, don't force a fix
 ```
 
@@ -240,7 +241,7 @@ After consultation:
 4. Continue with remaining bugs if deferring
 ```
 
-### Subagent Escalates to Systematic Debugging
+### Subagent Escalates to Root-Canal
 
 Let them complete the full 4-phase investigation. This might take a while but will find the root cause.
 
@@ -308,12 +309,12 @@ Consultation (external LLM or Opus agent)
      ├─► Resolved → apply fix → done
      │
      ▼ (still stuck)
-Systematic Debugging (full 4-phase)
+Root-Canal (full 4-phase forensic investigation)
      │
      ├─► Root cause found → fix → done
      │
      ▼ (reveals architectural issue)
-Brainstorm-to-Design (design gap)
+Dream-First (design gap)
 ```
 
 ## Red Flags
@@ -335,7 +336,7 @@ Brainstorm-to-Design (design gap)
 
 **Works with:**
 - `rubber-duck` - Subagents invoke when stuck
-- `superpowers:systematic-debugging` - Final escalation
+- `root-canal` - Final escalation when rubber-duck + consultation don't resolve
 - `dream-first` - When design gaps found
 
 **Output:**

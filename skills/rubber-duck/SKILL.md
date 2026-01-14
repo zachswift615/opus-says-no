@@ -117,7 +117,7 @@ Which would you prefer?
 - Agent returns analysis and suggestions
 
 **If consultation doesn't resolve:**
-- Escalate to `superpowers:systematic-debugging`
+- Escalate to `root-canal`
 - The rubber-duck prompt becomes input to Phase 1 (you've already gathered evidence)
 
 ## The Escalation Ladder
@@ -136,7 +136,7 @@ Consultation (external LLM or Opus agent)
      ├─► Resolved? → Done
      │
      ▼ (still stuck)
-Systematic Debugging (full 4-phase investigation)
+Root-Canal (full 4-phase forensic investigation)
 ```
 
 ## Red Flags - You're Not Really Rubber-Ducking
@@ -171,11 +171,11 @@ Systematic Debugging (full 4-phase investigation)
 ## Integration
 
 **Used by:**
-- `fix-feature-bugs` skill - subagents invoke when stuck
+- `patch-party` - subagents invoke when stuck
 - Any debugging session after 2 failed attempts
 
 **Escalates to:**
-- `superpowers:systematic-debugging` - when consultation doesn't resolve
+- `root-canal` - when consultation doesn't resolve
 
 **Related:**
 - `opus-consultation-prompt.md` - prompt template for Opus consultation agent

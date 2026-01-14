@@ -124,7 +124,27 @@ IF YOU CAN'T EXPLAIN IT CLEARLY, YOU DON'T UNDERSTAND IT YET
 1. Write detailed prompt explaining the bug
 2. Pause - did writing reveal the answer?
 3. If still stuck: consult external LLM or Opus agent
-4. If still stuck: escalate to systematic-debugging
+4. If still stuck: escalate to root-canal
+
+### `root-canal`
+
+When rubber-duck + consultation didn't work. Time to go surgical.
+
+**Core principle:** ALWAYS find root cause before attempting fixes. Symptom fixes are failure.
+
+```
+NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
+```
+
+**The Four Phases:**
+1. **Root Cause Investigation** - Read errors, reproduce, check changes, gather evidence
+2. **Pattern Analysis** - Find working examples, compare differences
+3. **Hypothesis Testing** - Form single theory, test minimally, verify
+4. **Implementation** - Create failing test, single fix, verify
+
+**Escalation:** If 3+ fixes fail → question the architecture → dream-first
+
+**Supporting techniques:** root-cause-tracing, defense-in-depth, condition-based-waiting
 
 ---
 
@@ -150,7 +170,7 @@ Consultation (external LLM or Opus agent)
      ├─► Resolved → done
      │
      ▼ (still stuck)
-Systematic Debugging (full 4-phase investigation)
+Root-Canal (full 4-phase forensic investigation)
      │
      ├─► Root cause found → done
      │
@@ -340,7 +360,8 @@ claude-custom-skills/
 │   ├── blueprint-maestro/     # Complex plans (8+ tasks)
 │   ├── go-time/               # Resumable execution
 │   ├── patch-party/           # Post-implementation bugs
-│   └── rubber-duck/           # Stuck bug escalation
+│   ├── rubber-duck/           # Stuck bug escalation
+│   └── root-canal/            # Full forensic debugging
 ├── prompts/                   # Shared review prompts
 ├── commands/                  # Entry points
 ├── install.sh
