@@ -1,5 +1,9 @@
 # Opus Says No
 
+```
+THE PROCESS IS THE SHORTCUT.
+```
+
 A collection of custom skills for Claude Code that enforce discipline in planning, implementation, and bug-fixing.
 
 ```
