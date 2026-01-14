@@ -3,7 +3,7 @@ name: execute-plan
 description: Execute an implementation plan using go-agents for resumable subagent coordination
 arguments:
   - name: plan_path
-    description: Path to the implementation plan file (e.g., docs/plans/2026-01-12-feature-name.md)
+    description: Path to the implementation plan file (e.g., docs/user-auth/plan.md)
     required: true
 ---
 

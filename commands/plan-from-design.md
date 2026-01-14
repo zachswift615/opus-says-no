@@ -3,7 +3,7 @@ name: plan-from-design
 description: Create an implementation plan from a design document using the implementation-planning skill
 arguments:
   - name: design_doc_path
-    description: Path to the design document file (e.g., docs/designs/2026-01-12-feature-name.md)
+    description: Path to the design document file (e.g., docs/user-auth/design.md)
     required: true
 ---
 

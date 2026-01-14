@@ -91,7 +91,12 @@ If writing scenarios reveals gaps, discuss them with the user before finalizing 
 
 ### 1. Write the Design Document
 
-Save the validated design to `docs/designs/YYYY-MM-DD-<topic>.md`
+Save the validated design to `docs/<feature-name>/design.md`
+
+**Feature directory naming:**
+- Use kebab-case: `user-auth`, `metrics-export`, `dark-mode-toggle`
+- Match branch name when possible
+- Keep it short but descriptive
 
 **Design document should include:**
 - **Problem & Goals** - What we're solving and why
@@ -129,8 +134,8 @@ I'm spawning an adversarial design review subagent to challenge this design.
 - `model`: "opus"
 - `description`: "Adversarial design review"
 - `prompt`: Load from `@design-review.md` and include:
-  - Path to design doc: `docs/designs/YYYY-MM-DD-<topic>.md`
-  - Path to user stories (if exists): `docs/designs/YYYY-MM-DD-<topic>-stories.gherkin`
+  - Path to design doc: `docs/<feature-name>/design.md`
+  - Path to user stories (if exists): `docs/<feature-name>/stories.gherkin`
 
 **Example invocation:**
 
@@ -203,13 +208,14 @@ Once design is validated and reviewed, hand off to implementation planning.
 - User stories: [N scenarios] (if applicable)
 - Review feedback: [N items addressed]
 
-**Design document:** `docs/designs/<filename>.md`
-**User stories:** `docs/designs/<filename>-stories.gherkin` (if applicable)
+**Feature directory:** `docs/<feature-name>/`
+**Design document:** `docs/<feature-name>/design.md`
+**User stories:** `docs/<feature-name>/stories.gherkin` (if applicable)
 
 **To create the implementation plan, use:**
 
 ```
-/plan-from-design docs/designs/<filename>.md
+/plan-from-design docs/<feature-name>/design.md
 ```
 
 This command will assess complexity and invoke the appropriate planning skill (implementation-planning or implementation-planning-orchestrator).

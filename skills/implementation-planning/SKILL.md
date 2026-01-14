@@ -12,7 +12,9 @@ Create comprehensive implementation plans using a three-phase approach that catc
 
 **Announce at start:** "I'm using implementation-planning to create a gap-free implementation plan."
 
-**Save plans to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
+**Save plans to:** `docs/<feature-name>/plan.md`
+
+**Feature directory:** Should already exist from brainstorming-to-plan with `design.md`. If not, create it.
 
 ## Choose Your Planning Approach
 
@@ -87,7 +89,7 @@ Create a high-level task list focused on GOALS and CONNECTIONS, not implementati
 
 ### Save the Outline
 
-Save to the plan file: `docs/plans/YYYY-MM-DD-<feature-name>.md`
+Save to the plan file: `docs/<feature-name>/plan.md`
 
 Start with this header:
 
@@ -138,7 +140,7 @@ I'm spawning a gap analysis subagent to review the task outline for structural g
 - `model`: "opus" (use the most capable model)
 - `description`: "Gap analysis review"
 - `prompt`: Load from `@gap-analysis-review.md` and include:
-  - Path to plan file: `docs/plans/YYYY-MM-DD-<feature-name>.md`
+  - Path to plan file: `docs/<feature-name>/plan.md`
 
 **Example invocation:**
 
@@ -283,7 +285,7 @@ I'm spawning a plan review subagent to verify the implementation plan is complet
 - `model`: "opus"
 - `description`: "Implementation plan review"
 - `prompt`: Load from `@plan-review.md` and include:
-  - Path to plan file: `docs/plans/YYYY-MM-DD-<feature-name>.md`
+  - Path to plan file: `docs/<feature-name>/plan.md`
 
 **Example invocation:**
 
@@ -347,7 +349,8 @@ After both reviews are complete and all critical issues are resolved, hand off t
 
 **"Implementation plan complete and reviewed."**
 
-**Plan:** `docs/plans/<filename>.md`
+**Feature directory:** `docs/<feature-name>/`
+**Plan:** `docs/<feature-name>/plan.md`
 
 **Quality metrics:**
 - Gap analysis: [N] iterations, [M] gaps resolved
@@ -357,10 +360,16 @@ After both reviews are complete and all critical issues are resolved, hand off t
 **To execute this plan in a fresh session, use:**
 
 ```
-/execute-plan docs/plans/<filename>.md
+/execute-plan docs/<feature-name>/plan.md
 ```
 
-This command will load the plan and invoke superpowers:subagent-driven-development for coordinated execution.
+This command will load the plan and invoke go-agents for coordinated execution.
+
+**After execution, if bugs remain:**
+
+```
+/fix-feature-bugs <feature-name> <bug descriptions>
+```
 
 ---
 

@@ -14,7 +14,9 @@ Coordinate multiple agents to create comprehensive implementation plans without 
 
 **Announce at start:** "I'm using implementation-planning-orchestrator to create a scalable, gap-free implementation plan."
 
-**Save plans to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
+**Save plans to:** `docs/<feature-name>/plan.md`
+
+**Feature directory:** Should already exist from brainstorming-to-plan with `design.md`. If not, create it.
 
 ---
 
@@ -59,7 +61,7 @@ Complete Plan Ready for Execution
    - User Stories (if present)
    - Constraints
 
-3. Create initial plan file: `docs/plans/YYYY-MM-DD-<feature-name>.md`
+3. Create plan file: `docs/<feature-name>/plan.md`
 
 **Plan file header:**
 ```markdown
@@ -70,7 +72,7 @@ Complete Plan Ready for Execution
 Date: YYYY-MM-DD
 Status: In Progress - Task Outline
 
-**Design Document:** docs/designs/YYYY-MM-DD-<feature-name>.md
+**Design Document:** docs/<feature-name>/design.md
 
 **Goal:** [One sentence from design]
 
@@ -121,7 +123,7 @@ I'm spawning a task outline agent to create the high-level task structure.
 ```
 Create a task outline for the following implementation plan.
 
-**Design Document:** @docs/designs/YYYY-MM-DD-<feature-name>.md
+**Design Document:** @docs/<feature-name>/design.md
 
 **Task Outline Format:**
 
@@ -140,7 +142,7 @@ For each task, specify:
 - Every output must be consumed by something
 - Every input must come from somewhere
 
-**Write the task outline to:** docs/plans/YYYY-MM-DD-<feature-name>.md
+**Write the task outline to:** docs/<feature-name>/plan.md
 
 Add the outline under a "## Task Outline" section.
 ```
@@ -174,7 +176,7 @@ I'm spawning a gap analysis agent to find structural gaps in the task outline.
 - `model`: "opus"
 - `description`: "Gap analysis review"
 - `prompt`: Load from `@gap-analysis-review.md` and include:
-  - Path to plan file: `docs/plans/YYYY-MM-DD-<feature-name>.md`
+  - Path to plan file: `docs/<feature-name>/plan.md`
 
 ### Review Results
 
@@ -399,7 +401,7 @@ I'm spawning feedback incorporation agent to address final review findings.
 ```
 Incorporate the final review feedback into the implementation plan.
 
-**Plan file:** docs/plans/YYYY-MM-DD-<feature-name>.md
+**Plan file:** docs/<feature-name>/plan.md
 **Review results:** [Include review findings]
 
 **Actions needed:**
@@ -468,7 +470,8 @@ Update the plan file with all changes. Mark sections that were updated.
 
 **"Implementation plan complete and ready for execution."**
 
-**Plan:** `docs/plans/<filename>.md`
+**Feature directory:** `docs/<feature-name>/`
+**Plan:** `docs/<feature-name>/plan.md`
 
 **Quality metrics:**
 - Task outline: Gap-free after [N] iterations
@@ -480,10 +483,16 @@ Update the plan file with all changes. Mark sections that were updated.
 **To execute this plan, use:**
 
 ```
-/execute-plan docs/plans/<filename>.md
+/execute-plan docs/<feature-name>/plan.md
 ```
 
 This will invoke go-agents for coordinated task execution with resumable subagents.
+
+**After execution, if bugs remain:**
+
+```
+/fix-feature-bugs <feature-name> <bug descriptions>
+```
 
 ---
 
