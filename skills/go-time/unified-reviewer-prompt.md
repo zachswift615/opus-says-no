@@ -91,11 +91,31 @@ Task tool (general-purpose):
 
     Only if spec compliance passes. No point reviewing quality of wrong code.
 
+    **The Standard:** Clean, efficient, SOLID, DRY, elegant code and tests.
+
     **Architecture & Design:**
     - Does it follow existing patterns in the codebase?
     - Is there proper separation of concerns?
     - Are dependencies appropriate?
-    - Does it follow SOLID principles where applicable?
+    - Does it follow SOLID principles?
+      - Single Responsibility: Each class/function does one thing
+      - Open/Closed: Extensible without modification
+      - Liskov Substitution: Subtypes honor contracts
+      - Interface Segregation: No forced unused dependencies
+      - Dependency Inversion: Depend on abstractions
+    - Are there design gaps or architectural weaknesses?
+
+    **DRY & Efficiency:**
+    - Is there duplicated logic that should be extracted?
+    - Are abstractions at the right level (not premature, not missing)?
+    - Is the code efficient without premature optimization?
+    - Could any repeated patterns be consolidated?
+
+    **Idiomatic Patterns:**
+    - Does the code follow idiomatic conventions for each language used?
+    - Are language-specific best practices applied?
+    - Does it leverage language features appropriately (not fighting the language)?
+    - Would a senior developer in this language recognize it as well-written?
 
     **Code Cleanliness:**
     - Clear naming (describes what, not how)
@@ -103,6 +123,7 @@ Task tool (general-purpose):
     - No dead code or commented-out code
     - Type safety (if typed language)
     - Defensive programming where appropriate
+    - Elegant solutions over clever or convoluted ones
 
     **Error Handling:**
     - Are errors handled appropriately?
@@ -142,7 +163,7 @@ Task tool (general-purpose):
         "issues": [
           {
             "severity": "critical" | "important" | "minor",
-            "category": "architecture" | "code" | "testing" | "security",
+            "category": "architecture" | "solid" | "dry" | "idioms" | "code" | "testing" | "security",
             "issue": "Description of the problem",
             "location": "file:line or general area",
             "suggestion": "How to fix"
@@ -165,18 +186,24 @@ Task tool (general-purpose):
     - Security vulnerabilities
     - Broken functionality
     - Tests failing
+    - Major SOLID violations causing tight coupling or fragility
 
     **Important (should fix before merge):**
     - Poor error handling
     - Missing edge cases
     - Significant code quality issues
     - Inadequate test coverage
+    - DRY violations (duplicated logic in 3+ places)
+    - Non-idiomatic patterns that hurt maintainability
+    - Design gaps that will cause problems later
 
     **Minor (nice to fix):**
     - Style inconsistencies
     - Minor naming improvements
     - Small refactoring opportunities
     - Documentation gaps
+    - Minor DRY issues (2 places, small duplication)
+    - Idiomatic improvements that aren't critical
 
     ## Your Stance
 
@@ -266,6 +293,20 @@ After fixes, re-dispatch reviewer to verify.
         "issue": "Magic number 3600 for token TTL",
         "location": "src/auth/config.ts:12",
         "suggestion": "Extract to named constant TOKEN_TTL_SECONDS"
+      },
+      {
+        "severity": "important",
+        "category": "dry",
+        "issue": "Token validation logic duplicated in 3 places",
+        "location": "src/auth/middleware.ts:34, src/auth/refresh.ts:22, src/auth/session.ts:67",
+        "suggestion": "Extract to shared validateToken() function"
+      },
+      {
+        "severity": "minor",
+        "category": "idioms",
+        "issue": "Using for-loop where Array.filter().map() would be more idiomatic",
+        "location": "src/auth/permissions.ts:45",
+        "suggestion": "Use functional array methods for cleaner, more readable code"
       }
     ]
   },
