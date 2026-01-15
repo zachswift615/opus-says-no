@@ -176,17 +176,25 @@ When reviewer found issues and implementer has capacity:
 Task tool:
   resume: "[implementer_agent_id]"
   prompt: |
-    The reviewer found issues with your implementation that need fixing:
+    The reviewer found issues with your implementation.
 
-    **Issues to address:**
-    [List each issue from reviewer with severity]
-
-    **Specific fixes needed:**
+    **Blocking issues (must fix):**
+    [List critical/important issues from reviewer]
     1. [Concrete fix instruction]
     2. [Concrete fix instruction]
 
-    Please address these issues. When done, report as usual with:
+    **Quality improvements to incorporate:**
+    [List ALL other feedback - SOLID, DRY, idioms, minor issues]
+
+    Your job: Fix all blocking issues AND incorporate as many quality
+    improvements as reasonable. We want clean, efficient, SOLID, DRY,
+    elegant code - not just "working" code.
+
+    When done, report as usual with:
     - What you fixed
+    - Quality improvements you incorporated
     - Updated tests if needed
     - New capacity estimate
 ```
+
+**Important:** Pass ALL review feedback to the implementer, not just blocking issues. Minor improvements compound into significant quality gains.
