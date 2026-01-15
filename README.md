@@ -146,6 +146,29 @@ NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
 
 **Supporting techniques:** root-cause-tracing, defense-in-depth, condition-based-waiting
 
+### `land-it`
+
+Implementation done. Time to land the branch.
+
+**Core principle:** Verify tests → Present options → Execute choice → Clean up.
+
+```
+LAND IT CLEAN OR DON'T LAND IT AT ALL
+```
+
+**The Process:**
+1. **Verify tests** - Must pass before any option is available
+2. **Determine base branch** - Where are we merging back to?
+3. **Present 4 options** - Merge locally, Create PR, Keep as-is, Discard
+4. **Execute choice** - Handle the chosen workflow
+5. **Cleanup** - Remove worktree if applicable
+
+**Options:**
+- Merge back locally (merge + delete branch + cleanup worktree)
+- Push and create PR (push + gh pr create + keep worktree)
+- Keep as-is (do nothing, preserve everything)
+- Discard (requires typed confirmation, force delete)
+
 ---
 
 ## The Escalation Ladder
@@ -361,7 +384,8 @@ claude-custom-skills/
 │   ├── go-time/               # Resumable execution
 │   ├── patch-party/           # Post-implementation bugs
 │   ├── rubber-duck/           # Stuck bug escalation
-│   └── root-canal/            # Full forensic debugging
+│   ├── root-canal/            # Full forensic debugging
+│   └── land-it/               # Branch completion workflow
 ├── prompts/                   # Shared review prompts
 ├── commands/                  # Entry points
 ├── install.sh
@@ -397,6 +421,12 @@ The default approach produces plans with gaps. Agents hit context limits and lea
 - Escalation ladder prevents thrashing
 - Design gaps escalate to dreaming
 - Rubber-duck catches what persistence misses
+
+---
+
+## Acknowledgments
+
+Most of these skills are heavily modified versions of skills and prompts from the [superpowers](https://github.com/obra/superpowers) project by Jesse Vincent, customized for this workflow.
 
 ---
 
