@@ -74,8 +74,10 @@ Task tool (general-purpose):
        - Are there edge cases I missed?
        - Fix any issues you find NOW before reporting
 
-    4. **Commit your work**
+    4. **REQUIRED: Commit your work** (non-negotiable)
+       - You MUST commit before reporting - no exceptions
        - Clear commit message describing what was done
+       - If tests pass, commit. Do not skip this step.
 
     5. **Report completion with capacity estimate**
 
@@ -90,10 +92,12 @@ Task tool (general-purpose):
       "summary": "[What you implemented]",
       "files_changed": ["file1.ts", "file2.ts"],
       "tests_passing": true,
-      "commit_sha": "[sha]",
+      "committed": "[sha] - [commit message]",  // REQUIRED - must have committed before reporting
       "notes": "[Any concerns or observations for the coordinator]"
     }
     ```
+
+    **The `committed` field is REQUIRED.** If you haven't committed, go back and commit now.
 
     ### Context Capacity Estimation
 
@@ -120,6 +124,7 @@ Task tool (general-purpose):
     - Don't add features because they seem useful
     - Don't skip tests because "it's simple"
     - Don't guess at ambiguous requirements
+    - **Don't report completion without committing** - the commit is proof of work
 ```
 
 ## Resume for Answer Template

@@ -29,7 +29,7 @@ digraph go_agents {
 
     "Load plan, extract tasks, create TodoWrite" [shape=box];
     "Dispatch implementer with Task 1" [shape=box];
-    "Implementer returns" [shape=diamond];
+    "Implementer returns (implements, tests, commits)" [shape=diamond];
 
     "Resume with answer" [shape=box];
     "Check context capacity" [shape=diamond];
@@ -43,15 +43,15 @@ digraph go_agents {
     "Final review + finish branch" [shape=box];
 
     "Load plan, extract tasks, create TodoWrite" -> "Dispatch implementer with Task 1";
-    "Dispatch implementer with Task 1" -> "Implementer returns";
+    "Dispatch implementer with Task 1" -> "Implementer returns (implements, tests, commits)";
 
-    "Implementer returns" -> "Resume with answer" [label="needs_input"];
-    "Resume with answer" -> "Implementer returns";
+    "Implementer returns (implements, tests, commits)" -> "Resume with answer" [label="needs_input"];
+    "Resume with answer" -> "Implementer returns (implements, tests, commits)";
 
-    "Implementer returns" -> "Check context capacity" [label="task_complete"];
+    "Implementer returns (implements, tests, commits)" -> "Check context capacity" [label="task_complete"];
 
     "Check context capacity" -> "Resume with next task" [label="capacity > 50%\n& tasks remain"];
-    "Resume with next task" -> "Implementer returns";
+    "Resume with next task" -> "Implementer returns (implements, tests, commits)";
 
     "Check context capacity" -> "Dispatch unified reviewer for batch" [label="capacity <= 50%\nor no more tasks"];
 
@@ -64,7 +64,7 @@ digraph go_agents {
 
     "More tasks remain?" -> "Dispatch fresh implementer" [label="yes"];
     "More tasks remain?" -> "Final review + finish branch" [label="no"];
-    "Dispatch fresh implementer" -> "Implementer returns";
+    "Dispatch fresh implementer" -> "Implementer returns (implements, tests, commits)";
 }
 ```
 
@@ -211,7 +211,8 @@ Implementer returns:
   "context_capacity": "80%",
   "summary": "Implemented JWT auth middleware",
   "files_changed": ["src/auth/jwt.ts", "src/middleware/auth.ts"],
-  "tests_passing": true
+  "tests_passing": true,
+  "committed": "abc123f - Add JWT auth middleware with refresh token support"
 }
 
 [80% capacity - resume with Task 2]
@@ -220,6 +221,7 @@ Implementer returns:
 {
   "status": "task_complete",
   "context_capacity": "55%",
+  "committed": "def456a - Add user session management",
   ...
 }
 
@@ -229,6 +231,7 @@ Implementer returns:
 {
   "status": "task_complete",
   "context_capacity": "30%",  // Below threshold
+  "committed": "789bcd0 - Add rate limiting middleware",
   ...
 }
 
