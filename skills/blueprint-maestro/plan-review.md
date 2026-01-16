@@ -73,11 +73,30 @@ For EACH task, verify:
 
 ### 3. Code Quality in Plan
 
+**The Standard:** Clean, efficient, SOLID, DRY, elegant code.
+
 - [ ] Is all code syntactically complete?
 - [ ] Are imports/exports shown?
 - [ ] Are type signatures included (if typed language)?
 - [ ] Are variable names not placeholder-ish ("foo", "temp", "TODO")?
 - [ ] Is error handling included in code samples?
+
+**SOLID Principles:**
+- [ ] Single Responsibility: Does each planned class/function do one thing?
+- [ ] Open/Closed: Is the design extensible without modification?
+- [ ] Liskov Substitution: Do planned subtypes honor contracts?
+- [ ] Interface Segregation: No forced unused dependencies?
+- [ ] Dependency Inversion: Depending on abstractions, not concretions?
+
+**DRY & Efficiency:**
+- [ ] Is there duplicated logic across tasks that should be extracted?
+- [ ] Are abstractions at the right level (not premature, not missing)?
+- [ ] Could any repeated patterns be consolidated into shared code?
+
+**Idiomatic Patterns:**
+- [ ] Does planned code follow idiomatic conventions for each language?
+- [ ] Are language-specific best practices applied?
+- [ ] Does it leverage language features appropriately?
 
 **Red flags:**
 - `// TODO: implement this`
@@ -85,6 +104,9 @@ For EACH task, verify:
 - Code with `???` or `...`
 - Missing imports
 - Incomplete function signatures
+- Major SOLID violations causing tight coupling
+- Same logic duplicated in 3+ places across tasks
+- Non-idiomatic patterns that hurt maintainability
 
 ### 4. File Paths & Locations
 

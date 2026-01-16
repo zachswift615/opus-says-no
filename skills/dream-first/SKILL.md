@@ -217,10 +217,8 @@ Once design is validated and reviewed, hand off to implementation planning.
 **To create the implementation plan, use:**
 
 ```
-/plan-from-design docs/<feature-name>/design.md
+/blueprint-maestro docs/<feature-name>/design.md
 ```
-
-This command will assess complexity and invoke the appropriate planning skill (blueprint or blueprint-maestro).
 
 ---
 
