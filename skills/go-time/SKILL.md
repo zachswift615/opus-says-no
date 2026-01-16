@@ -15,6 +15,27 @@ Execute plans by dispatching subagents that can be resumed for follow-up questio
 - Batch reviews after agent exhaustion (not per-task)
 - One unified reviewer (spec + quality combined)
 
+## Your Role: Orchestrator Only
+
+**You are the conductor, not the musicians.**
+
+Your job is EXCLUSIVELY to:
+- Read and understand the plan
+- Extract tasks and create TodoWrite
+- Dispatch implementer subagents
+- Answer subagent questions (via resume)
+- Monitor capacity and trigger reviews
+- Dispatch reviewers and fix agents
+- Track progress
+
+**NEVER:**
+- Implement tasks directly (context pollution)
+- Write code yourself (dispatch a subagent)
+- Fix issues yourself (dispatch a fix agent or resume implementer)
+- "Help" by doing quick changes (still context pollution)
+
+If you find yourself about to write code or make changes, STOP. Dispatch a subagent instead.
+
 ## When to Use
 
 - You have an implementation plan with discrete tasks
@@ -327,10 +348,11 @@ Done!
 - Always re-review after fixes
 
 **If subagent fails a task:**
-- Don't try to fix manually (context pollution in your session)
+- NEVER try to fix manually - this pollutes YOUR context and defeats the entire purpose of orchestration
 - Dispatch a fix agent with specific instructions about what went wrong
 - Give them the error output and clear guidance
 - Or resume the original if they have capacity and just hit a fixable issue
+- Remember: you are the orchestrator, not the implementer
 
 ## Integration
 
