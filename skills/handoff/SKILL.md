@@ -24,14 +24,32 @@ The handoff document prioritizes deep documentation of unresolved issues - essen
 2. **Deep-dive unresolved issues**: For each unfinished item, gather comprehensive diagnostic information
 3. **Generate rubber-duck analysis**: For bugs, write the explanation that forces clarity
 4. **Document learnings**: Capture insights that would take time to rediscover
-5. **Write handoff.md**: Create the document in the working directory
+5. **Write handoff document**: Create with unique filename (see naming convention below)
 </process>
 
 </quick_start>
 
+<filename_convention>
+Each handoff creates a new file to maintain a trail of handoffs:
+
+**Format:** `YYYY-MM-DD-{feature-name}-handoff.md`
+
+**Examples:**
+- `2025-01-17-auth-flow-handoff.md`
+- `2025-01-17-dashboard-layout-handoff.md`
+- `2025-01-18-api-caching-handoff.md`
+
+**Rules:**
+- Use today's date in ISO format (YYYY-MM-DD)
+- Derive feature name from the session's primary goal
+- Use lowercase with hyphens, no spaces
+- Keep feature name concise (2-4 words)
+- Always end with `-handoff.md`
+</filename_convention>
+
 <document_structure>
 
-Write to `handoff.md` using this format:
+Write to `YYYY-MM-DD-{feature-name}-handoff.md` using this format:
 
 ```xml
 <session_summary>
