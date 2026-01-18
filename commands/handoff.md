@@ -18,7 +18,8 @@ This is especially valuable for stubborn bugs or layout issues that resist multi
 <process>
 1. Use the Skill tool to invoke the `handoff` skill
 2. Follow the skill's document structure precisely
-3. Write to `YYYY-MM-DD-{feature-name}-handoff.md` (unique file each time)
+3. Create `docs/handoffs/` if needed
+4. Write to `docs/handoffs/YYYY-MM-DD-{feature-name}-handoff.md`
 </process>
 
 <critical_emphasis>

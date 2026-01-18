@@ -30,16 +30,18 @@ The handoff document prioritizes deep documentation of unresolved issues - essen
 </quick_start>
 
 <filename_convention>
-Each handoff creates a new file to maintain a trail of handoffs:
+Each handoff creates a new file in `docs/handoffs/` to maintain a trail:
 
+**Location:** `docs/handoffs/`
 **Format:** `YYYY-MM-DD-{feature-name}-handoff.md`
 
 **Examples:**
-- `2025-01-17-auth-flow-handoff.md`
-- `2025-01-17-dashboard-layout-handoff.md`
-- `2025-01-18-api-caching-handoff.md`
+- `docs/handoffs/2025-01-17-auth-flow-handoff.md`
+- `docs/handoffs/2025-01-17-dashboard-layout-handoff.md`
+- `docs/handoffs/2025-01-18-api-caching-handoff.md`
 
 **Rules:**
+- Create `docs/handoffs/` directory if it doesn't exist
 - Use today's date in ISO format (YYYY-MM-DD)
 - Derive feature name from the session's primary goal
 - Use lowercase with hyphens, no spaces
