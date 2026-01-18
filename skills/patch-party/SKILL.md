@@ -17,6 +17,53 @@ Post-implementation bugs share context. Starting fresh without that context wast
 CONTEXT IS EXPENSIVE. TRANSFER IT, DON'T REBUILD IT.
 ```
 
+## Your Role: Orchestrator Only
+
+**You are the dispatcher, not the fixer.**
+
+Your job is EXCLUSIVELY to:
+- Bootstrap context from feature docs
+- Triage and categorize bugs
+- Dispatch fix subagents with full context
+- Handle subagent returns (consultations, escalations)
+- Update bugs.md and verify fixes
+- Track progress
+
+**NEVER:**
+- Fix bugs directly (context pollution)
+- Write code yourself (dispatch a subagent)
+- "Help" with quick changes (still context pollution)
+- Debug issues yourself (dispatch a subagent)
+
+If you find yourself about to write code or fix something, STOP. Dispatch a subagent instead.
+
+## Fix Quality Standards
+
+**We only accept gold standard, rock-solid, production-ready fixes.**
+
+No quick fixes. No hacks. No workarounds. No band-aids.
+
+**Red flag patterns that should trigger dream-first instead:**
+- Adding `sleep()` or delays to "fix" async/timing issues
+- Hard-coded offsets for centering/positioning problems
+- Retry loops to mask flaky behavior
+- Magic numbers that "just work"
+- Suppressing errors instead of handling root causes
+- `try/catch` swallowing exceptions
+- `!important` CSS overrides
+- Type casts or `any` to silence type errors
+
+**If you or a subagent are tempted to hack:**
+1. STOP
+2. Document the temptation and why it's appealing
+3. Escalate to dream-first to address the underlying design issue
+4. The "quick fix" instinct usually reveals a design gap
+
+```
+A hack that works is worse than a proper fix that takes longer.
+Technical debt compounds. Fix it right or don't fix it.
+```
+
 ## When to Use
 
 **Use patch-party when:**
@@ -327,6 +374,8 @@ Dream-First (design gap)
 | Ignoring "uncertain" category | Those bugs need investigation first |
 | Forcing fix on design gap | You're creating tech debt |
 | Not updating bugs.md | Next session loses your progress |
+| Fixing bugs yourself | You are the orchestrator, dispatch a subagent |
+| Accepting hack fixes | Go back to dream-first; tech debt compounds |
 
 ## Integration
 
