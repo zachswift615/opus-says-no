@@ -35,3 +35,27 @@ Each issue includes:
 - File and line reference
 - Explanation of the problem
 - Code suggestion for the fix
+- **Ready-to-paste PR comment** (see format below)
+
+## PR Comment Format
+
+For each review item, include a `### PR Comment` section with a friendly, concise comment the user can paste directly on the PR. Format:
+
+```markdown
+### PR Comment
+**Line:** `src/example.ts:42`
+
+> Consider using optional chaining here to handle the null case more cleanly:
+>
+> ```ts
+> const name = user?.profile?.name ?? 'Anonymous';
+> ```
+>
+> This avoids the nested conditionals and makes the intent clearer.
+```
+
+Guidelines for PR comments:
+- **Friendly tone** - suggest, don't demand ("Consider...", "You might want to...", "One option would be...")
+- **Include code examples** - show the suggested fix, not just describe it
+- **Keep it concise** - 2-4 sentences max plus code block
+- **Specify the line** - include exact file:line for easy navigation
