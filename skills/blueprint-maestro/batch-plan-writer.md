@@ -172,23 +172,21 @@ After writing your batch:
 
 ---
 
-## Your Output Format
+## Output Protocol
 
-```markdown
-# Implementation Plan - Batch [N]
+**You are running as a background agent.** To keep the orchestrator's context lean:
 
-**Tasks:** [Your task numbers]
-**Context:** [Brief summary of what you're implementing]
+1. **Write all detailed implementation** directly to the plan file. Append your tasks under the existing content, following the task structure format.
+2. **Update the "Detailed Planning Progress"** section in the plan file to mark your batch as complete.
+3. **Your final message** (what the orchestrator sees) must be ONLY a 2-3 sentence summary:
+   - Which tasks you completed (by number)
+   - Any tasks deferred and why
+   - Whether you can handle review feedback if resumed
 
----
+Example final message:
+> Completed Tasks 5-8. All tasks written with full TDD steps and complete code. Ready for review feedback if resumed.
 
-[Detailed implementation for each task using structure above]
-
----
-
-## Batch Completion Report
-[Your completion report]
-```
+Do NOT return the detailed implementation in your response — it belongs in the plan file only.
 
 ---
 

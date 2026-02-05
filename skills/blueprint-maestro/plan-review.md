@@ -384,6 +384,24 @@ These patterns indicate execution problems:
 
 ---
 
+## Output Protocol
+
+**You are running as a background agent.** To keep the orchestrator's context lean:
+
+1. **Write your full review** to the plan file under a `## Final Review Results` section. Include all details, issues, and recommendations there.
+2. **Update the Planning Progress** checklist in the plan file to mark "Final review complete".
+3. **Your final message** (what the orchestrator sees) must be ONLY a 2-3 sentence summary:
+   - Execution confidence: High/Medium/Low
+   - Critical issue count
+   - One sentence overall assessment
+
+Example final message:
+> Execution confidence: High (92%). Found 0 critical issues, 2 important issues. Plan is well-structured and executable with minor clarifications needed in Tasks 7 and 12.
+
+Do NOT return the full review in your response — it belongs in the plan file only.
+
+---
+
 ## Your Goal
 
 **Verify this plan is executable without asking questions.**

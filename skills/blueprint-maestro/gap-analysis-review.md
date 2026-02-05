@@ -289,6 +289,24 @@ These patterns often indicate structural gaps:
 
 ---
 
+## Output Protocol
+
+**You are running as a background agent.** To keep the orchestrator's context lean:
+
+1. **Write your full gap analysis** to the plan file under a `## Gap Analysis Results` section. Include all details, gaps found, and the revised outline (if applicable) there.
+2. **Update the Planning Progress** checklist in the plan file to mark "Gap analysis complete" (only if no critical/important gaps remain).
+3. **Your final message** (what the orchestrator sees) must be ONLY a 2-3 sentence summary:
+   - Gap counts: N critical, M important, K minor
+   - One sentence on the biggest issue (if any)
+   - Recommendation: Ready for Detailing / Gaps Must Be Addressed
+
+Example final message:
+> Found 2 critical gaps, 3 important gaps, 1 minor gap. Biggest issue: Task 4 creates a validator but nothing calls it — missing integration task. Recommendation: Gaps Must Be Addressed.
+
+Do NOT return the full analysis in your response — it belongs in the plan file only.
+
+---
+
 ## Your Goal
 
 **Find structural gaps now, not during execution.**

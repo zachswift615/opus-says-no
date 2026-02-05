@@ -319,6 +319,23 @@ These patterns indicate execution problems:
 
 ---
 
+## Output Protocol
+
+**You are running as a background agent.** To keep the orchestrator's context lean:
+
+1. **Write your full review** to the plan file under a `## Batch [N] Review` section (where N is the batch number). Include all details, issues, and recommendations there.
+2. **Your final message** (what the orchestrator sees) must be ONLY a 2-3 sentence summary:
+   - Recommendation: Ready for Execution / Minor Fixes Needed / Major Issues
+   - Critical/important issue count
+   - One sentence on biggest issue (if any)
+
+Example final message:
+> Recommendation: Minor Fixes Needed. Found 0 critical, 2 important issues. Task 6 is missing the integration test for the API endpoint. Review details written to plan file.
+
+Do NOT return the full review in your response — it belongs in the plan file only.
+
+---
+
 ## Your Goal
 
 **Ensure this batch can be executed without questions.**

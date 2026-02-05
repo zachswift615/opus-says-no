@@ -22,6 +22,40 @@ Coordinate multiple agents to create comprehensive implementation plans without 
 
 ---
 
+## Context Budget Protocol
+
+**The #1 risk for blueprint-maestro is running out of context.** Foreground agents dump their entire output (~50-70k tokens each) into the orchestrator's context. Three foreground agents can consume ~160k of a 200k context window, killing the session. Follow these rules strictly:
+
+### Rule 1: Background ALL Agents
+Every agent spawned by the orchestrator MUST use `run_in_background: true`. **No exceptions.** This is the single most important rule in the entire skill.
+
+### Rule 2: Agents Write to File, Return a Summary
+Every agent prompt MUST end with this instruction:
+> **CRITICAL:** Write all detailed output directly to the plan file. Your final message must be ONLY a 2-3 sentence summary of what you accomplished and any blockers. Do NOT return detailed content in your response — it belongs in the file only.
+
+### Rule 3: Don't Read Source Code in the Orchestrator
+The orchestrator reads ONLY:
+- The design document (once, to create the plan header)
+- The Planning Progress section of the plan file (to track status — use `offset`/`limit` to read just that section)
+
+All source code reading happens inside agents in their own context windows. Pass file paths to agents, never file contents.
+
+### Rule 4: Check Completion Leanly
+After a background agent completes:
+1. Read ONLY the **last 30 lines** of the agent's output file (use `Read` with `offset`) to get the summary
+2. Optionally read just the "Planning Progress" table from the plan file to verify the checkbox updated
+3. **NEVER** read the full output file or the full plan file back into the orchestrator
+
+### Context Budget Target
+| Item | Tokens | Notes |
+|------|--------|-------|
+| Design doc read | ~5-15k | One-time, acceptable |
+| Per-agent completion check | ~1-2k | Summary + progress table only |
+| Orchestrator tracking/decisions | ~5-10k | Status updates, batch decisions |
+| **Target total** | **<50k** | For a full planning session |
+
+---
+
 ## The Orchestration Flow
 
 ```
@@ -54,8 +88,7 @@ Complete Plan Ready for Execution
 **Input:** Path to design document (from `/plan-from-design` command)
 
 **Actions:**
-1. Read the complete design document
-2. Extract key information:
+1. Read the design document to extract key information:
    - Problem & Goals
    - Chosen Approach
    - Key Decisions
@@ -63,7 +96,9 @@ Complete Plan Ready for Execution
    - User Stories (if present)
    - Constraints
 
-3. Create plan file: `docs/<feature-name>/plan.md`
+2. Create plan file: `docs/<feature-name>/plan.md`
+
+**IMPORTANT:** Read ONLY the design document here. Do NOT read any source code files (models, views, utils, etc.) — agents will read those in their own context. Pass file paths to agents, never contents.
 
 **Plan file header:**
 ```markdown
@@ -120,12 +155,13 @@ I'm spawning a task outline agent to create the high-level task structure.
 - `subagent_type`: "general-purpose"
 - `model`: "opus"
 - `description`: "Create task outline"
+- `run_in_background`: true
 - `prompt`:
 
 ```
 Create a task outline for the following implementation plan.
 
-**Design Document:** @docs/<feature-name>/design.md
+**Design Document:** Read docs/<feature-name>/design.md for full context.
 
 **Task Outline Format:**
 
@@ -145,21 +181,18 @@ For each task, specify:
 - Every input must come from somewhere
 
 **Write the task outline to:** docs/<feature-name>/plan.md
-
 Add the outline under a "## Task Outline" section.
+Also update the "## Planning Progress" checklist to mark "Task outline created" as complete.
+
+**CRITICAL:** Write all detailed output directly to the plan file. Your final message must be ONLY a 2-3 sentence summary: how many tasks you created, the key structure, and any concerns. Do NOT return the full outline in your response — it belongs in the file only.
 ```
 
-### Update Plan Status
+### Check Completion
 
-After outline is created, update plan file status:
-```markdown
-## Planning Progress
-
-- [x] Design document read
-- [x] Task outline created
-- [ ] Gap analysis complete
-...
-```
+After the background agent completes:
+1. Read the **last 30 lines** of the agent's output file to get the summary
+2. Verify the outline was written by reading just the Planning Progress section of `docs/<feature-name>/plan.md`
+3. Do **NOT** read the full plan file or full agent output
 
 ---
 
@@ -177,61 +210,32 @@ I'm spawning a gap analysis agent to find structural gaps in the task outline.
 - `subagent_type`: "general-purpose"
 - `model`: "opus"
 - `description`: "Gap analysis review"
+- `run_in_background`: true
 - `prompt`: Load from `@gap-analysis-review.md` and include:
   - Path to plan file: `docs/<feature-name>/plan.md`
 
-### Review Results
+### Check Completion & Decision Point
 
-The gap agent will return:
-- Critical gaps (must fix)
-- Important gaps (should fix)
-- Minor gaps (optional)
-- Revised task outline (if gaps found)
+After the background agent completes:
+1. Read the **last 30 lines** of the agent's output file to get the gap summary
+2. The summary tells you: critical count, important count, and whether the outline needs revision
 
-### Decision Point: Gaps Found?
+**If Critical or Important gaps found (from the summary):**
+1. Resume the task outline agent with a brief prompt referencing the gap analysis in the plan file:
+   ```
+   The gap analysis found [N] critical and [M] important gaps. Read the "## Gap Analysis Results" section of docs/<feature-name>/plan.md for the full details. Fix the gaps and update the Task Outline section. Then update Gap Analysis Results to show what you fixed.
 
-**If Critical or Important gaps found:**
-1. Resume the task outline agent with gap feedback
-2. Have it update the outline
-3. Re-run gap analysis
-4. Repeat until no Critical/Important gaps
-
-**Resume outline agent:**
-```
-I'm resuming the task outline agent to address gap analysis feedback.
-```
-
-Use the Task tool with `resume` parameter and provide:
-- Gap analysis results
-- Which gaps to address
-- Request updated outline
+   CRITICAL: Write all changes directly to the plan file. Return ONLY a 2-3 sentence summary of what you fixed.
+   ```
+2. Use `run_in_background: true` for the resumed agent
+3. Re-run gap analysis (also backgrounded) until no Critical/Important gaps
 
 **If only Minor gaps or no gaps:**
 - Proceed to Phase 4
-- Document gap analysis results in plan
 
-### Update Plan File
+### Verify Gap Analysis Complete
 
-```markdown
-## Gap Analysis Summary
-
-**Iterations:** [N]
-**Critical gaps found and resolved:**
-1. [Gap description] → [How fixed]
-
-**Important gaps found and resolved:**
-1. [Gap description] → [How fixed]
-
-**Status:** Gap-free outline ready for detailed planning
-
-## Planning Progress
-
-- [x] Design document read
-- [x] Task outline created
-- [x] Gap analysis complete
-- [ ] Detailed planning in progress
-...
-```
+Read only the Planning Progress section of the plan file to confirm the gap analysis checkbox is marked complete.
 
 ---
 
@@ -337,18 +341,22 @@ I'm spawning batch writer agent for Tasks [X-Y].
 - `subagent_type`: "general-purpose"
 - `model`: "opus" (use most capable)
 - `description`: "Write detailed plan for batch [N]"
+- `run_in_background`: true
 - `prompt`: Load from `@batch-plan-writer.md` and include:
-  - Design document path
-  - Plan file path (with task outline)
+  - Design document path (agent reads it itself)
+  - Plan file path (agent reads outline + previous batches itself)
   - Assigned tasks: "Tasks [X-Y]"
-  - Previous batches info (if not first batch)
 
 **What writer does:**
+- Reads design doc and plan file in its own context
 - Assesses capacity
-- Writes complete implementation for assigned tasks following the Required Task Structure above: exact file paths, complete code (no placeholders), TDD steps (test → verify fail → implement → verify pass → commit), and exact commands with expected output
-- Reports completion and capacity remaining
+- Writes complete implementation directly to the plan file following the Required Task Structure: exact file paths, complete code (no placeholders), TDD steps, exact commands
+- Updates the Detailed Planning Progress section
+- Returns ONLY a 2-3 sentence summary
 
 #### 4.2: Spawn Batch Reviewer Agent
+
+After the writer's background task completes (check summary for success):
 
 ```
 I'm spawning batch reviewer agent for Tasks [X-Y].
@@ -358,38 +366,31 @@ I'm spawning batch reviewer agent for Tasks [X-Y].
 - `subagent_type`: "general-purpose"
 - `model`: "opus"
 - `description`: "Review batch [N] implementation"
+- `run_in_background`: true
 - `prompt`: Load from `@batch-plan-reviewer.md` and include:
-  - Design document path
-  - Plan file path
+  - Design document path (agent reads it itself)
+  - Plan file path (agent reads the batch it's reviewing itself)
   - Batch to review: "Tasks [X-Y]"
-  - Previous batches info
 
 **What reviewer does:**
+- Reads plan file in its own context
 - Reviews only assigned batch
-- Checks completeness, clarity, executability
-- Identifies Critical/Important/Minor issues
-- Recommends re-review if needed
+- Writes review to plan file
+- Returns ONLY the recommendation summary
 
 #### 4.3: Decision Point: Fixes Needed?
 
+Read the **last 30 lines** of the reviewer's output file to get the recommendation.
+
 **If Critical or Important issues found:**
-1. Resume batch writer agent with review feedback
-2. Have it fix the issues
-3. Re-run batch reviewer
-4. Repeat until batch approved
-
-**Resume writer:**
-```
-I'm resuming batch writer agent to address review feedback.
-```
-
-Use Task tool with `resume` parameter and provide:
-- Review results
-- Issues to fix
-- Request updated implementation
+1. Resume batch writer agent with a brief prompt:
+   ```
+   The reviewer found issues with your batch. Read the "## Batch [N] Review" section in the plan file for details. Fix the critical and important issues, update the plan file. Return ONLY a summary of what you fixed.
+   ```
+2. Use `run_in_background: true` for the resumed agent
+3. Re-run batch reviewer (backgrounded) until batch approved
 
 **If only Minor issues or approved:**
-- Note issues for writer to consider
 - Proceed to next batch
 
 #### 4.4: Update Progress
@@ -432,23 +433,22 @@ I'm spawning final plan reviewer to verify the complete implementation plan.
 - `subagent_type`: "general-purpose"
 - `model`: "opus"
 - `description`: "Final plan review"
+- `run_in_background`: true
 - `prompt`: Load from `@plan-review.md` and include:
   - Path to complete plan file
 
 **What final reviewer does:**
-- Reviews entire plan holistically
-- Checks end-to-end flow
-- Verifies all integrations
-- Confirms no gaps between batches
-- Validates final deliverable
+- Reads the entire plan file in its own context
+- Reviews plan holistically, checks end-to-end flow
+- Writes full review to the plan file (per its Output Protocol)
+- Returns ONLY a brief summary to the orchestrator
 
-### Review Results
+### Check Completion
 
-Final reviewer will return:
-- Overall executability assessment
-- Any cross-batch integration issues
-- Missing end-to-end verification
-- Final recommendations
+Read the **last 30 lines** of the agent's output file to get:
+- Execution confidence level
+- Whether critical issues were found
+- Whether to proceed or spawn a feedback agent
 
 ---
 
@@ -466,13 +466,15 @@ I'm spawning feedback incorporation agent to address final review findings.
 - `subagent_type`: "general-purpose"
 - `model`: "sonnet" (haiku if changes are trivial)
 - `description`: "Incorporate final review feedback"
+- `run_in_background`: true
 - `prompt`:
 
 ```
 Incorporate the final review feedback into the implementation plan.
 
 **Plan file:** docs/<feature-name>/plan.md
-**Review results:** [Include review findings]
+
+The review is already written in the plan file under "## Final Review Results". Read it there.
 
 **Actions needed:**
 1. Fix Critical issues (must address)
@@ -482,12 +484,16 @@ Incorporate the final review feedback into the implementation plan.
 5. Clarify ambiguities
 
 Update the plan file with all changes. Mark sections that were updated.
+
+**CRITICAL:** Your final message must be ONLY a 2-3 sentence summary of what you changed and whether a re-review is needed. Do NOT return detailed changes in your response.
 ```
 
 ### Decision Point: Re-Review?
 
+Read the **last 30 lines** of the agent's output file to get the summary.
+
 **If significant changes made:**
-- Re-run final plan reviewer
+- Re-run final plan reviewer (backgrounded)
 - Verify issues resolved
 
 **If minor changes:**
@@ -637,10 +643,10 @@ After all batches:
 
 **Symptom:** You're at 80%+ context during orchestration
 
-**Action:**
-- Summarize completed batches
-- Track only: batch status, issues found, current batch
-- Delegate all detail work to subagents
+**This shouldn't happen if you followed the Context Budget Protocol.** If it does:
+- You likely read a full agent output file or the full plan file — stop doing that
+- Read ONLY the last 30 lines of output files and ONLY the Planning Progress section of the plan file
+- All detailed work must happen inside background agents, not in the orchestrator
 
 ---
 
