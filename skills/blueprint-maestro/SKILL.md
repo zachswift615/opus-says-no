@@ -10,15 +10,43 @@ The conductor for complex plans.
 
 ## Overview
 
-Coordinate multiple agents to create comprehensive implementation plans without hitting context limits. This skill orchestrates task outline creation, gap analysis, batched detailed planning, incremental reviews, and final validation.
+Coordinate multiple agents to write comprehensive implementation plans in batches. This skill takes a validated task outline (produced by story-time) and orchestrates detailed planning: batched writing, incremental reviews, and final validation.
 
-**Key innovation:** Plans are written in batches by fresh agents, with each batch reviewed before the next begins. This allows plans of any size while maintaining quality and completeness.
+**Key innovation:** Plans are written in batches of 2-3 tasks by fresh agents, with each batch reviewed before the next begins. Fix agents get full context budget for focused repairs — no resumed agents with exhausted context.
 
-**Announce at start:** "I'm using blueprint-maestro to create a scalable, gap-free implementation plan."
+**Announce at start:** "I'm using blueprint-maestro to create detailed implementation plans from the validated task outline."
 
-**Save plans to:** `docs/<feature-name>/plan.md`
+**Input:** A plan file at `docs/<feature-name>/plan.md` containing a validated task outline (produced by story-time or manually).
 
-**Feature directory:** Should already exist from dream-first with `design.md`. If not, create it.
+**Output:** The same plan file, extended with detailed implementation for every task.
+
+**Feature directory:** Should already exist with `design.md` and a task outline in `plan.md`.
+
+---
+
+## Resume vs Fresh Start
+
+**Before doing anything else, read the plan file and determine the current state.**
+
+Read ONLY the "## Planning Progress" and "## Detailed Planning Progress" sections of the plan file (use `offset`/`limit` to read just those sections).
+
+### Fresh Start
+
+**Indicators:** Plan file has a task outline and "Gap analysis complete" is checked, but NO "## Detailed Planning Progress" section exists, or it shows no completed batches.
+
+**Action:**
+1. Read the design document once (to have context for the plan header if needed)
+2. Add the detailed planning checkboxes to Planning Progress if not present
+3. Start at Phase 1 (Batched Detailed Planning) from batch 1
+
+### Resume
+
+**Indicators:** Plan file has a "## Detailed Planning Progress" section with some batches marked complete, and/or a "## Planning Handoff" section exists.
+
+**Action:**
+1. Read the "## Planning Handoff" section (if present) to find which batch is next
+2. Or determine the next batch from the Detailed Planning Progress section
+3. Continue from that batch in Phase 1 (Batched Detailed Planning)
 
 ---
 
@@ -35,7 +63,7 @@ Every agent prompt MUST end with this instruction:
 
 ### Rule 3: Don't Read Source Code in the Orchestrator
 The orchestrator reads ONLY:
-- The design document (once, to create the plan header)
+- The design document (once, for context)
 - The Planning Progress section of the plan file (to track status — use `offset`/`limit` to read just that section)
 
 All source code reading happens inside agents in their own context windows. Pass file paths to agents, never file contents.
@@ -56,186 +84,53 @@ After a background agent completes:
 
 ---
 
+## Orchestrator Role Rules
+
+**You are the conductor, not the musicians.**
+
+### Rule: NEVER Write Plan Content Directly
+
+The orchestrator MUST NEVER write review content, batch details, task implementations, or any planning content directly to the plan file.
+
+**ALL plan file modifications happen through subagents:**
+- Batch details → batch writer agent
+- Fixes from reviews → fresh fix agent
+- Final feedback → feedback incorporation agent
+- Planning handoff → handoff agent
+
+**The orchestrator ONLY:**
+- Reads summaries (agent output last 30 lines, Planning Progress section)
+- Makes dispatch decisions (which agent next, which batch)
+- Tracks progress (which batches are done)
+- Communicates with the user
+
+**If a batch review comes back with issues:**
+- Dispatch a fresh fix agent
+- Do NOT copy the review into the plan
+- Do NOT attempt to fix things yourself
+- Do NOT write the review summary into the plan
+
+---
+
 ## The Orchestration Flow
 
 ```
-Read Design Document
+Read Plan File (determine resume vs fresh start)
         ↓
-Task Outline Agent (subagent)
-        ↓
-Gap Analysis Agent (subagent)
-        ↓
-   Gaps found? → Resume Outline Agent
-        ↓ No gaps
 Batch Planning Loop:
   ├─ Batch Writer Agent (fresh agent per batch)
   ├─ Batch Reviewer Agent (fresh agent per batch)
-  └─ Resume Writer if fixes needed
+  ├─ Spawn FRESH Fix Agent if fixes needed
+  └─ Context Checkpoint → Above 70%? Write handoff, stop.
         ↓
    More tasks? → Next batch
         ↓ All tasks detailed
 Final Plan Reviewer (subagent)
         ↓
-Incorporate Feedback Agent (subagent if needed)
+Incorporate Feedback Agent (fresh subagent if needed)
         ↓
 Complete Plan Ready for Execution
 ```
-
----
-
-## Phase 1: Read Design Document
-
-**Input:** Path to design document (from `/plan-from-design` command)
-
-**Actions:**
-1. Read the design document to extract key information:
-   - Problem & Goals
-   - Chosen Approach
-   - Key Decisions
-   - Scope (must-have, nice-to-have, out-of-scope)
-   - User Stories (if present)
-   - Constraints
-
-2. Create plan file: `docs/<feature-name>/plan.md`
-
-**IMPORTANT:** Read ONLY the design document here. Do NOT read any source code files (models, views, utils, etc.) — agents will read those in their own context. Pass file paths to agents, never contents.
-
-**Plan file header:**
-```markdown
-# [Feature Name] Implementation Plan
-
-> **For Claude:** Execute this plan task-by-task with verification at each step.
-
-Date: YYYY-MM-DD
-Status: In Progress - Task Outline
-
-**Design Document:** docs/<feature-name>/design.md
-
-**Goal:** [One sentence from design]
-
-**Architecture:** [2-3 sentences from design's chosen approach]
-
-**Key Decisions:**
-- [Decision 1]
-- [Decision 2]
-
-**Tech Stack:** [Technologies from design]
-
-**Scope Summary:**
-- Must have: [N items]
-- Nice to have: [M items]
-- Out of scope: [K items]
-
----
-
-## Planning Progress
-
-- [x] Design document read
-- [ ] Task outline created
-- [ ] Gap analysis complete
-- [ ] Detailed planning in progress
-- [ ] Final review complete
-
----
-```
-
----
-
-## Phase 2: Task Outline Creation
-
-**Spawn a subagent** to create the task outline.
-
-### Subagent Invocation
-
-```
-I'm spawning a task outline agent to create the high-level task structure.
-```
-
-**Task tool parameters:**
-- `subagent_type`: "general-purpose"
-- `model`: "opus"
-- `description`: "Create task outline"
-- `run_in_background`: true
-- `prompt`:
-
-```
-Create a task outline for the following implementation plan.
-
-**Design Document:** Read docs/<feature-name>/design.md for full context.
-
-**Task Outline Format:**
-
-For each task, specify:
-- **Goal:** What this accomplishes (one sentence)
-- **Inputs:** What this task needs to start
-- **Outputs:** What this task produces
-- **Acceptance Criteria:** Measurable success criteria
-- **Depends On:** Which task numbers (or "None")
-- **Consumed By:** Which tasks use this output (or "End User")
-
-**Rules:**
-- NO code yet - just goals and connections
-- NO file paths yet - just what needs to be done
-- Focus on the dependency graph
-- Every output must be consumed by something
-- Every input must come from somewhere
-
-**Write the task outline to:** docs/<feature-name>/plan.md
-Add the outline under a "## Task Outline" section.
-Also update the "## Planning Progress" checklist to mark "Task outline created" as complete.
-
-**CRITICAL:** Write all detailed output directly to the plan file. Your final message must be ONLY a 2-3 sentence summary: how many tasks you created, the key structure, and any concerns. Do NOT return the full outline in your response — it belongs in the file only.
-```
-
-### Check Completion
-
-After the background agent completes:
-1. Read the **last 30 lines** of the agent's output file to get the summary
-2. Verify the outline was written by reading just the Planning Progress section of `docs/<feature-name>/plan.md`
-3. Do **NOT** read the full plan file or full agent output
-
----
-
-## Phase 3: Gap Analysis
-
-**Spawn gap analysis agent** to review the task outline.
-
-### Subagent Invocation
-
-```
-I'm spawning a gap analysis agent to find structural gaps in the task outline.
-```
-
-**Task tool parameters:**
-- `subagent_type`: "general-purpose"
-- `model`: "opus"
-- `description`: "Gap analysis review"
-- `run_in_background`: true
-- `prompt`: Load from `@gap-analysis-review.md` and include:
-  - Path to plan file: `docs/<feature-name>/plan.md`
-
-### Check Completion & Decision Point
-
-After the background agent completes:
-1. Read the **last 30 lines** of the agent's output file to get the gap summary
-2. The summary tells you: critical count, important count, and whether the outline needs revision
-
-**If Critical or Important gaps found (from the summary):**
-1. Resume the task outline agent with a brief prompt referencing the gap analysis in the plan file:
-   ```
-   The gap analysis found [N] critical and [M] important gaps. Read the "## Gap Analysis Results" section of docs/<feature-name>/plan.md for the full details. Fix the gaps and update the Task Outline section. Then update Gap Analysis Results to show what you fixed.
-
-   CRITICAL: Write all changes directly to the plan file. Return ONLY a 2-3 sentence summary of what you fixed.
-   ```
-2. Use `run_in_background: true` for the resumed agent
-3. Re-run gap analysis (also backgrounded) until no Critical/Important gaps
-
-**If only Minor gaps or no gaps:**
-- Proceed to Phase 4
-
-### Verify Gap Analysis Complete
-
-Read only the Planning Progress section of the plan file to confirm the gap analysis checkbox is marked complete.
 
 ---
 
@@ -307,31 +202,29 @@ git commit -m "feat: add specific feature"
 
 ---
 
-## Phase 4: Batched Detailed Planning
+## Phase 1: Batched Detailed Planning
 
-Now write detailed implementation in batches to avoid context limits.
+Now write detailed implementation in batches.
 
 ### Batch Size Strategy
 
-**Determine batch size based on task complexity:**
-- Count total tasks from outline
-- Estimate complexity (simple/medium/complex)
-- Calculate batches:
-  - Simple tasks: 4-5 per batch
-  - Medium tasks: 3-4 per batch
-  - Complex tasks: 1-2 per batch
-  - Mixed: 2-3 per batch (conservative)
+**Always 2-3 tasks per batch.**
+
+This applies regardless of task complexity. Smaller batches mean:
+- Writers have full context budget for quality
+- Reviews are focused and thorough
+- Fix agents have clear scope
+- Context checkpoints happen frequently
 
 **Example:**
-- Total: 18 tasks
-- Complexity: Mixed (some simple config, some complex algorithms)
-- Batches: 6 batches of 3 tasks each
+- Total: 12 tasks from outline
+- Batches: 4-6 batches of 2-3 tasks each
 
 ### Batch Loop
 
 For each batch:
 
-#### 4.1: Spawn Batch Writer Agent
+#### 1.1: Spawn Batch Writer Agent
 
 ```
 I'm spawning batch writer agent for Tasks [X-Y].
@@ -354,7 +247,7 @@ I'm spawning batch writer agent for Tasks [X-Y].
 - Updates the Detailed Planning Progress section
 - Returns ONLY a 2-3 sentence summary
 
-#### 4.2: Spawn Batch Reviewer Agent
+#### 1.2: Spawn Batch Reviewer Agent
 
 After the writer's background task completes (check summary for success):
 
@@ -378,31 +271,96 @@ I'm spawning batch reviewer agent for Tasks [X-Y].
 - Writes review to plan file
 - Returns ONLY the recommendation summary
 
-#### 4.3: Decision Point: Fixes Needed?
+#### 1.3: Decision Point: Fixes Needed?
 
 Read the **last 30 lines** of the reviewer's output file to get the recommendation.
 
 **If Critical or Important issues found:**
-1. Resume batch writer agent with a brief prompt:
-   ```
-   The reviewer found issues with your batch. Read the "## Batch [N] Review" section in the plan file for details. Fix the critical and important issues, update the plan file. Return ONLY a summary of what you fixed.
-   ```
-2. Use `run_in_background: true` for the resumed agent
-3. Re-run batch reviewer (backgrounded) until batch approved
+
+Spawn a **FRESH fix agent** (do NOT resume the batch writer):
+
+**Task tool parameters:**
+- `subagent_type`: "general-purpose"
+- `model`: "opus"
+- `description`: "Fix batch [N] issues"
+- `run_in_background`: true
+- `prompt`:
+
+```
+You are a fix agent for Batch [N] (Tasks [X-Y]) of an implementation plan.
+
+**Plan file:** docs/<feature-name>/plan.md
+**Design document:** docs/<feature-name>/design.md
+
+**Your job:**
+1. Read the plan file
+2. Find the "## Batch [N] Review" section — it lists the issues found
+3. Fix ALL critical and important issues in the task details
+4. Update the plan file with your fixes
+
+**QUALITY STANDARD — every fix MUST follow this pattern:**
+- Exact file paths (absolute or clearly relative from project root)
+- Complete code (no TODOs, no placeholders, no "add validation here")
+- TDD pattern: Write failing test → Run to verify fail → Implement → Run to verify pass → Commit
+- Exact commands with expected output (copy-pasteable)
+- Integration checks showing how tasks connect
+
+**CRITICAL:** Write all fixes directly to the plan file. Your final message must be ONLY a 2-3 sentence summary of what you fixed. Do NOT return detailed content in your response — it belongs in the file only.
+```
+
+After the fix agent completes:
+- Re-run batch reviewer (fresh agent, backgrounded) to verify fixes
+- Repeat fix → review cycle until batch approved
+- **Maximum 3 fix iterations per batch.** If still failing after 3, note remaining issues in Detailed Planning Progress and move to next batch.
 
 **If only Minor issues or approved:**
-- Proceed to next batch
+- Proceed to context checkpoint
 
-#### 4.4: Update Progress
+#### 1.4: Context Checkpoint
 
-After each batch is approved:
+**After each batch cycle completes (write → review → fix if needed → approve), check your own context usage.**
+
+**If you estimate your context is above ~70% full:**
+
+1. Spawn a background handoff agent:
+
+**Task tool parameters:**
+- `subagent_type`: "general-purpose"
+- `model`: "haiku"
+- `description`: "Write planning handoff"
+- `run_in_background`: true
+- `prompt`:
+
+```
+Read docs/<feature-name>/plan.md. Add a "## Planning Handoff" section at the end with:
+
+- Which batches are complete (list batch numbers and task ranges)
+- Which batch is next (batch number and task range)
+- Total tasks remaining
+- Any notes about issues encountered during planning
+
+Write this to the plan file. Return a 2-sentence summary.
+```
+
+2. After handoff agent completes, tell the user:
+
+**"Context is getting full. Run `/blueprint-maestro docs/<feature-name>/plan.md` in a fresh session to continue planning from where I left off."**
+
+3. **Stop.** Do not attempt another batch.
+
+**If context is below ~70%:**
+- Continue to next batch
+
+#### 1.5: Update Progress
+
+After each batch is approved, verify the Detailed Planning Progress section was updated by the writer/fix agent.
 
 ```markdown
 ## Detailed Planning Progress
 
-**Batch 1 (Tasks 1-6):** ✓ Complete, reviewed, approved
-**Batch 2 (Tasks 7-12):** ✓ Complete, reviewed, approved
-**Batch 3 (Tasks 13-18):** In progress
+**Batch 1 (Tasks 1-3):** ✓ Complete, reviewed, approved
+**Batch 2 (Tasks 4-6):** ✓ Complete, reviewed, approved
+**Batch 3 (Tasks 7-9):** In progress
 
 ## Planning Progress
 
@@ -413,13 +371,13 @@ After each batch is approved:
 ...
 ```
 
-#### 4.5: Next Batch
+#### 1.6: Next Batch
 
-Repeat 4.1-4.4 for each batch until all tasks are detailed.
+Repeat 1.1-1.5 for each batch until all tasks are detailed.
 
 ---
 
-## Phase 5: Final Plan Review
+## Phase 2: Final Plan Review
 
 After all batches are complete, review the entire plan end-to-end.
 
@@ -452,36 +410,43 @@ Read the **last 30 lines** of the agent's output file to get:
 
 ---
 
-## Phase 6: Incorporate Final Feedback
+## Phase 3: Incorporate Final Feedback
 
-If final reviewer found issues:
+If final reviewer found Critical or Important issues:
 
-### Spawn Feedback Incorporation Agent
+### Spawn FRESH Feedback Fix Agent
 
 ```
-I'm spawning feedback incorporation agent to address final review findings.
+I'm spawning feedback fix agent to address final review findings.
 ```
 
 **Task tool parameters:**
 - `subagent_type`: "general-purpose"
-- `model`: "sonnet" (haiku if changes are trivial)
+- `model`: "opus"
 - `description`: "Incorporate final review feedback"
 - `run_in_background`: true
 - `prompt`:
 
 ```
-Incorporate the final review feedback into the implementation plan.
+You are a fix agent for final review feedback on an implementation plan.
 
 **Plan file:** docs/<feature-name>/plan.md
 
-The review is already written in the plan file under "## Final Review Results". Read it there.
+Read the "## Final Review Results" section for all feedback.
 
-**Actions needed:**
+**Your job:**
 1. Fix Critical issues (must address)
 2. Address Important issues (should address)
 3. Consider Minor issues
 4. Add missing items
 5. Clarify ambiguities
+
+**QUALITY STANDARD — every fix MUST follow this pattern:**
+- Exact file paths (absolute or clearly relative from project root)
+- Complete code (no TODOs, no placeholders, no "add validation here")
+- TDD pattern: Write failing test → Run to verify fail → Implement → Run to verify pass → Commit
+- Exact commands with expected output (copy-pasteable)
+- Integration checks showing how tasks connect
 
 Update the plan file with all changes. Mark sections that were updated.
 
@@ -493,7 +458,7 @@ Update the plan file with all changes. Mark sections that were updated.
 Read the **last 30 lines** of the agent's output file to get the summary.
 
 **If significant changes made:**
-- Re-run final plan reviewer (backgrounded)
+- Re-run final plan reviewer (fresh agent, backgrounded)
 - Verify issues resolved
 
 **If minor changes:**
@@ -501,7 +466,7 @@ Read the **last 30 lines** of the agent's output file to get the summary.
 
 ---
 
-## Phase 7: Finalize and Handoff
+## Phase 4: Finalize and Handoff
 
 ### Update Plan Status
 
@@ -533,7 +498,6 @@ Read the **last 30 lines** of the agent's output file to get the summary.
 **Total Tasks:** [N]
 **Batches:** [M]
 **Review Iterations:**
-- Gap analysis: [N] iterations
 - Batch reviews: [M] iterations
 - Final review: [K] iterations
 
@@ -550,7 +514,6 @@ Read the **last 30 lines** of the agent's output file to get the summary.
 **Plan:** `docs/<feature-name>/plan.md`
 
 **Quality metrics:**
-- Task outline: Gap-free after [N] iterations
 - Detailed planning: [M] batches, [K] review iterations
 - Final review: [Confidence level]
 
@@ -559,10 +522,8 @@ Read the **last 30 lines** of the agent's output file to get the summary.
 **To execute this plan, use:**
 
 ```
-/execute-plan docs/<feature-name>/plan.md
+/go-time <feature-name>
 ```
-
-This will invoke go-time for coordinated task execution with resumable subagents.
 
 **After execution, if bugs remain:**
 
@@ -574,18 +535,16 @@ This will invoke go-time for coordinated task execution with resumable subagents
 
 ## Key Principles
 
-### 1. Batch Size Matters
+### 1. Small Batches, High Quality
 
-**Too large:** Writer hits context limits, leaves placeholders
-**Too small:** Overhead of agent coordination
-**Just right:** 5-8 tasks for mixed complexity
+**Always 2-3 tasks per batch.** Smaller batches mean writers have full context budget, reviews are focused, and fix agents have clear scope.
 
 ### 2. Fresh Agents Per Batch
 
 Each batch gets a fresh writer agent:
-- No context pollution
-- Can handle full task complexity
-- Can incorporate review feedback via resume
+- No context pollution from previous batches
+- Full context budget for quality writing
+- Can produce complete, detailed implementations
 
 ### 3. Incremental Reviews
 
@@ -594,12 +553,13 @@ Review each batch before next begins:
 - Maintain quality bar
 - Avoid cascading problems
 
-### 4. Resume for Fixes
+### 4. Fresh Fix Agents for Repairs
 
 When reviewer finds issues:
-- Resume the same writer agent
-- It has context of what it wrote
-- Efficient fixing without re-reading
+- Spawn a FRESH fix agent with full context budget
+- Fix agent reads plan file, finds the review, fixes issues
+- No context pollution from the original writing session
+- Writer used 70% on writing — fix agent gets 100% for focused repairs
 
 ### 5. Final Holistic Review
 
@@ -607,6 +567,13 @@ After all batches:
 - Check end-to-end integration
 - Verify cross-batch connections
 - Catch any overall issues
+
+### 6. Context Self-Monitoring
+
+After each batch cycle:
+- Check context usage
+- Write handoff and stop if above 70%
+- Fresh session picks up seamlessly via Resume path
 
 ---
 
@@ -619,16 +586,16 @@ After all batches:
 **Action:**
 - Accept the smaller batch
 - Create new batch for remaining tasks
-- Adjust batch size down for future batches
+- Future batches stay at 2-3 tasks
 
 ### Reviewer Finds Too Many Issues
 
 **Symptom:** 10+ critical issues in one batch
 
 **Action:**
-- Resume writer with feedback
-- If issues persist after 2 iterations, spawn fresh writer for problematic tasks
-- May indicate batch complexity too high
+- Spawn fresh fix agent with feedback
+- If issues persist after 3 fix iterations, note in progress and move on
+- May indicate task complexity needs splitting
 
 ### Batches Don't Connect
 
@@ -641,24 +608,38 @@ After all batches:
 
 ### Context Running Low
 
-**Symptom:** You're at 80%+ context during orchestration
+**Symptom:** You're at 70%+ context during orchestration
 
-**This shouldn't happen if you followed the Context Budget Protocol.** If it does:
-- You likely read a full agent output file or the full plan file — stop doing that
-- Read ONLY the last 30 lines of output files and ONLY the Planning Progress section of the plan file
-- All detailed work must happen inside background agents, not in the orchestrator
+**Action:**
+- Follow the Context Checkpoint protocol (Phase 1.4)
+- Write planning handoff and stop
+- User invokes `/blueprint-maestro` again — Resume path picks up automatically
+- This should NOT happen before at least 3-4 batches if you followed the Context Budget Protocol
+
+### Resume Not Working
+
+**Symptom:** Blueprint-maestro can't determine where to continue
+
+**Action:**
+- Read the full Planning Progress and Detailed Planning Progress sections
+- Count completed batches and identify the next task range
+- If ambiguous, start from the last incomplete batch
 
 ---
 
 ## When to Use This Skill
 
 **Use blueprint-maestro when:**
+- You have a validated task outline (from story-time or manual creation)
 - Plan will have 8+ tasks
 - Tasks are complex or varied in complexity
-- Design is comprehensive
-- Want highest quality with any plan size
+- Want highest quality at any plan size
 
-**Use blueprint when:**
+**Prerequisites:**
+- Plan file with validated task outline (gap analysis complete)
+- Design document in the same feature directory
+
+**Use blueprint (simple) when:**
 - Plan is simple (< 5 tasks)
 - All tasks are straightforward
 - Single agent can handle it
@@ -668,7 +649,6 @@ After all batches:
 ## Success Criteria
 
 A successful plan has:
-- [ ] Gap-free task outline
 - [ ] All tasks detailed with complete code
 - [ ] All file paths specific
 - [ ] All verification steps clear
@@ -677,4 +657,4 @@ A successful plan has:
 - [ ] Approved by final reviewer
 - [ ] Confidence: High or Medium
 
-If all checked, plan is ready for `/execute-plan`.
+If all checked, plan is ready for `/go-time`.

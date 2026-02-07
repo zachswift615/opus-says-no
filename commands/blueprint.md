@@ -16,22 +16,33 @@ Create a comprehensive implementation plan for **{{feature}}**.
 
 ## Instructions
 
-1. **Read the design:** Load `docs/{{feature}}/design.md`
-2. **Assess complexity:** Check scope and estimated task count
-3. **Choose skill:**
-   - **8+ tasks or complex?** → Use `blueprint-maestro`
-   - **< 5 simple tasks?** → Use `blueprint` skill
-4. **Create the plan** with gap analysis and reviews
+1. **Check for existing plan:** Check if `docs/{{feature}}/plan.md` already exists
+2. **Read the design:** Load `docs/{{feature}}/design.md`
+3. **Determine path:**
+
+### If plan.md exists with a validated outline (gap analysis complete):
+- Skip to `blueprint-maestro` for detailed planning
+- Use `blueprint-maestro` skill with `docs/{{feature}}/plan.md`
+
+### If plan.md exists with detailed batches (resume scenario):
+- Go directly to `blueprint-maestro` which will auto-detect resume state
+- Use `blueprint-maestro` skill with `docs/{{feature}}/plan.md`
+
+### If no plan.md or plan.md has no outline:
+- **Assess complexity** from the design document
+- **8+ tasks or complex?** → Use `story-time` first, then `blueprint-maestro`
+- **< 5 simple tasks?** → Use `blueprint` skill directly
 
 ## What Happens
 
-**With blueprint-maestro (recommended for complex):**
-1. Task outline → Gap analysis → Batched planning → Reviews → Done
+**Complex features (recommended path):**
+1. `story-time` → Task outline + Gap analysis → `docs/{{feature}}/plan.md` (outline)
+2. `blueprint-maestro` → Batched planning + Reviews → `docs/{{feature}}/plan.md` (detailed)
 
-**With blueprint skill (simple plans):**
-1. Task outline → Gap analysis → Single-pass planning → Review → Done
+**Simple features:**
+1. `blueprint` skill → Outline + Gap analysis + Single-pass planning → Done
 
-**Default to maestro when in doubt.**
+**Default to the story-time + maestro path when in doubt.**
 
 ## Next Step
 

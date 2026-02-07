@@ -50,23 +50,37 @@ Don't start coding until you know what you're building.
 
 **Output:** `docs/<feature-name>/design.md`
 
+### `story-time`
+
+Break it down before you plan it out.
+
+**Core principle:** Validated decomposition before detailed planning.
+
+1. Read design document
+2. **Task Outline** - Goals, connections, acceptance criteria
+3. **Gap Analysis** - Opus finds structural gaps
+4. Iterate until gap-free with fresh fix agents
+5. Hand off validated outline
+
+**Use for:** Any feature that needs structured decomposition before detailed planning
+
+**Output:** `docs/<feature-name>/plan.md` (task outline)
+
 ### `blueprint-maestro` (Recommended)
 
 The conductor for complex plans.
 
-**Core principle:** Fresh agents per batch. Reviews before next batch. No compromises.
+**Core principle:** Fresh agents per batch. Fresh fix agents for repairs. No compromises.
 
-```
-BATCH SIZE MATTERS. TOO LARGE = PLACEHOLDERS. TOO SMALL = OVERHEAD.
-```
-
-1. **Task Outline** - Goals and connections, not code
-2. **Gap Analysis** - Opus finds what you missed
-3. **Batched Planning** - 5-8 tasks per fresh agent
-4. **Incremental Reviews** - Each batch approved before next
+1. **Resume/Fresh check** - Detect plan state automatically
+2. **Batched Planning** - 2-3 tasks per fresh agent
+3. **Incremental Reviews** - Each batch approved before next
+4. **Fresh Fix Agents** - Full context budget for focused repairs
 5. **Final Review** - End-to-end validation
 
 **Use for:** 8+ tasks, complex features, anything that matters
+
+**Requires:** Validated task outline (from story-time)
 
 **Output:** `docs/<feature-name>/plan.md`
 
@@ -270,16 +284,22 @@ flowchart TD
     Assess -->|Simple| BlueprintSkill[blueprint skill]
     BlueprintSkill --> PlanDoc[(plan.md)]
 
-    Assess -->|Complex| Maestro[blueprint-maestro]
-    Maestro --> Outline[Task Outline]
+    Assess -->|Complex| StoryTime[story-time]
+    StoryTime --> Outline[Task Outline]
     Outline --> GapReview{{Gap Analysis<br/>Opus Says No?}}
-    GapReview -->|Iterate| Outline
-    GapReview -->|Clean| BatchLoop[Batch Loop]
+    GapReview -->|Iterate| GapFix[Fresh Fix Agent]
+    GapFix --> GapReview
+    GapReview -->|Clean| Maestro[blueprint-maestro]
 
-    BatchLoop --> Writer[Fresh Writer]
+    Maestro --> BatchLoop[Batch Loop]
+    BatchLoop --> Writer[Fresh Writer<br/>2-3 Tasks]
     Writer --> BatchReview{{Batch Review<br/>Opus Says No?}}
-    BatchReview -->|Iterate| Writer
-    BatchReview -->|Next| BatchLoop
+    BatchReview -->|Iterate| BatchFix[Fresh Fix Agent]
+    BatchFix --> BatchReview
+    BatchReview -->|Next| ContextCheck{Context<br/>OK?}
+    ContextCheck -->|Yes| BatchLoop
+    ContextCheck -->|No| Handoff[Handoff + Resume]
+    Handoff --> Maestro
     BatchReview -->|Done| FinalReview{{Final Review}}
     FinalReview --> PlanDoc
 
@@ -305,7 +325,7 @@ flowchart TD
     classDef docNode fill:#51cf66,stroke:#2f9e44,color:#fff
 
     class DesignReview,GapReview,BatchReview,FinalReview,UnifiedReview reviewNode
-    class DreamFirst,BlueprintCmd,BlueprintSkill,Maestro,GoTimeCmd,GoTime,PatchParty,RubberDuck cmdNode
+    class DreamFirst,BlueprintCmd,BlueprintSkill,StoryTime,Maestro,GoTimeCmd,GoTime,PatchParty,RubberDuck cmdNode
     class DesignDoc,PlanDoc,BugsDoc docNode
 ```
 
@@ -318,13 +338,17 @@ flowchart TD
 ```
 /dream-first                   # Explore. Decide. Review.
         ↓                      # → docs/<feature>/design.md
-/blueprint <feature>           # Outline. Gap analysis. Detail. Review.
-        ↓                      # → docs/<feature>/plan.md
+/story-time <feature>          # Outline. Gap analysis. Validate.
+        ↓                      # → docs/<feature>/plan.md (outline)
+/blueprint-maestro <plan>      # Batched planning. Reviews. Fix agents.
+        ↓                      # → docs/<feature>/plan.md (detailed)
 /go-time <feature>             # Implement. Resume. Review.
         ↓
 /patch-party <feature> "..."   # Bootstrap. Triage. Fix. Escalate.
                                # → docs/<feature>/bugs.md
 ```
+
+Or use `/blueprint <feature>` which routes through story-time + maestro automatically.
 
 ---
 
@@ -347,13 +371,21 @@ docs/
 
 ## Commands
 
+### `/story-time <feature>`
+
+```
+/story-time user-auth
+```
+
+Decomposes `docs/<feature>/design.md` into a validated task outline with gap analysis.
+
 ### `/blueprint <feature>`
 
 ```
 /blueprint user-auth
 ```
 
-Creates implementation plan from `docs/<feature>/design.md` with gap analysis and review.
+Creates implementation plan from `docs/<feature>/design.md`. Routes to story-time + blueprint-maestro for complex features, or blueprint for simple ones.
 
 ### `/go-time <feature>`
 
@@ -379,8 +411,9 @@ Bootstraps from feature docs, triages, dispatches fix subagents, handles escalat
 claude-custom-skills/
 ├── skills/
 │   ├── dream-first/           # Explore → Design → Review
+│   ├── story-time/            # Task outline → Gap analysis → Validate
 │   ├── blueprint/             # Simple plans (< 5-7 tasks)
-│   ├── blueprint-maestro/     # Complex plans (8+ tasks)
+│   ├── blueprint-maestro/     # Complex plans (from validated outline)
 │   ├── go-time/               # Resumable execution
 │   ├── patch-party/           # Post-implementation bugs
 │   ├── rubber-duck/           # Stuck bug escalation
@@ -410,10 +443,12 @@ The default approach produces plans with gaps. Agents hit context limits and lea
 
 ### The Scalable Planning Architecture
 
-- Plans written in 5-8 task batches by fresh agents
+- Decomposition (story-time) separated from detailed planning (blueprint-maestro)
+- Plans written in 2-3 task batches by fresh agents
 - No context limits because each batch starts fresh
 - Issues caught per batch, not at the end
-- Writers resume for feedback instead of restarting
+- Fresh fix agents for repairs — full context budget, no exhausted writers
+- Context self-monitoring with automatic handoff and resume
 
 ### The Structured Bug Fixing
 

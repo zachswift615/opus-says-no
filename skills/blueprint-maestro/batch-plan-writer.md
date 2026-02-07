@@ -29,10 +29,9 @@ Factors to consider:
 - Your remaining context (leave 40% for review feedback)
 
 **Capacity guidelines:**
-- Simple tasks: 4-5 per batch
-- Medium tasks: 3-4 per batch
-- Complex tasks: 1-2 per batch
-- Mixed: 2-3 per batch (conservative)
+- Always 2-3 tasks per batch, regardless of complexity
+- This keeps your context budget available for quality writing
+- If assigned more than 3 tasks, complete 2-3 and report the rest for next batch
 
 **If you can't complete all assigned tasks:** Report which tasks you CAN complete and which go to next batch.
 

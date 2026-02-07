@@ -4,10 +4,10 @@ This diagram shows the entire process from initial brainstorming through to exec
 
 ```mermaid
 flowchart TD
-    Start([New Feature Request]) --> Brainstorm[/brainstorming-to-plan/]
+    Start([New Feature Request]) --> DreamFirst[/dream-first/]
 
     %% Brainstorming Phase
-    Brainstorm --> Phase1[Phase 1: Understand Goal]
+    DreamFirst --> Phase1[Phase 1: Understand Goal]
     Phase1 --> Phase2[Phase 2: Explore Options]
     Phase2 --> Phase3[Phase 3: Make Decisions]
     Phase3 --> Phase4[Phase 4: Define Scope]
@@ -15,16 +15,16 @@ flowchart TD
     Phase5 --> Phase6[Phase 6: Write Design Doc]
     Phase6 --> DesignReview{{Design Review<br/>Opus Subagent}}
 
-    DesignReview -->|Gaps Found| Phase8[Phase 8: Incorporate Feedback]
+    DesignReview -->|Gaps Found| Phase8[Incorporate Feedback]
     Phase8 --> DesignReview
     DesignReview -->|Approved| DesignDoc[(Design Document)]
 
     %% Plan from Design
-    DesignDoc --> PlanCmd[/plan-from-design/]
+    DesignDoc --> PlanCmd[/blueprint/]
     PlanCmd --> Assess{Assess Complexity}
 
     %% Simple Path
-    Assess -->|< 5-7 Simple Tasks| Simple[/implementation-planning/]
+    Assess -->|< 5-7 Simple Tasks| Simple[blueprint skill]
     Simple --> SimpleOutline[Create Task Outline]
     SimpleOutline --> SimpleGap{{Gap Analysis<br/>Opus Subagent}}
     SimpleGap -->|Gaps Found| SimpleOutline
@@ -33,47 +33,51 @@ flowchart TD
     SimpleFinal -->|Issues| SimpleDetail
     SimpleFinal -->|Approved| PlanDoc
 
-    %% Orchestrator Path
-    Assess -->|8+ Tasks or Complex| Orch[/implementation-planning-orchestrator/]
-    Orch --> OrcPhase1[Phase 1: Read Design]
-    OrcPhase1 --> OrcPhase2[Phase 2: Task Outline Agent]
-    OrcPhase2 --> OrcPhase3{{Phase 3: Gap Analysis Agent}}
+    %% Complex Path - Story Time
+    Assess -->|8+ Tasks or Complex| StoryTime[story-time]
+    StoryTime --> STOutline[Task Outline Agent]
+    STOutline --> STGap{{Gap Analysis<br/>Opus Subagent}}
+    STGap -->|Gaps Found| STFix[Fresh Fix Agent]
+    STFix --> STGap
+    STGap -->|Gap-Free| ValidatedOutline[(Validated Outline)]
 
-    OrcPhase3 -->|Critical/Important Gaps| Resume1[Resume Outline Agent]
-    Resume1 --> OrcPhase3
-    OrcPhase3 -->|Gap-Free| OrcPhase4[Phase 4: Batched Planning]
+    %% Complex Path - Blueprint Maestro
+    ValidatedOutline --> Maestro[blueprint-maestro]
+    Maestro --> ResumeCheck{Resume or<br/>Fresh Start?}
+    ResumeCheck -->|Fresh| BatchStart
+    ResumeCheck -->|Resume| BatchStart
 
     %% Batch Loop
-    OrcPhase4 --> BatchStart{More Tasks?}
-    BatchStart -->|Yes| BatchWriter[Batch Writer Agent<br/>Tasks N-M]
-    BatchWriter --> BatchReview{{Batch Reviewer Agent<br/>Tasks N-M}}
-    BatchReview -->|Issues Found| ResumeWriter[Resume Writer Agent]
-    ResumeWriter --> BatchReview
-    BatchReview -->|Approved| BatchStart
+    BatchStart{More Tasks?} -->|Yes| BatchWriter[Fresh Writer Agent<br/>2-3 Tasks]
+    BatchWriter --> BatchReview{{Batch Reviewer<br/>Opus Subagent}}
+    BatchReview -->|Issues Found| FixAgent[Fresh Fix Agent]
+    FixAgent --> BatchReview
+    BatchReview -->|Approved| ContextCheck{Context<br/>< 70%?}
+    ContextCheck -->|Yes| BatchStart
+    ContextCheck -->|No| Handoff[Write Handoff<br/>Resume Later]
 
-    BatchStart -->|All Complete| OrcPhase5{{Phase 5: Final Plan Review<br/>Opus Subagent}}
-    OrcPhase5 -->|Issues| OrcPhase6[Phase 6: Feedback Agent]
-    OrcPhase6 --> OrcPhase5
-    OrcPhase5 -->|Approved| PlanDoc[(Implementation Plan)]
+    BatchStart -->|All Complete| FinalReview{{Final Plan Review<br/>Opus Subagent}}
+    FinalReview -->|Issues| FeedbackFix[Fresh Fix Agent]
+    FeedbackFix --> FinalReview
+    FinalReview -->|Approved| PlanDoc[(Implementation Plan)]
 
     %% Execution
-    PlanDoc --> ExecCmd[/execute-plan/]
-    ExecCmd --> GoAgents[/go-agents/]
-    GoAgents --> ExtractTasks[Extract All Tasks]
-    ExtractTasks --> CreateTodos[Create TodoWrite]
-    CreateTodos --> ImplLoop{More Tasks?}
+    PlanDoc --> GoTimeCmd[/go-time/]
+    GoTimeCmd --> GoTime[go-time skill]
+    GoTime --> Impl[Implementers]
+    Impl --> UnifiedReview{{Unified Review<br/>Spec + Code Quality}}
+    UnifiedReview -->|Iterate| Impl
+    UnifiedReview -->|Bugs| PatchParty[/patch-party/]
+    UnifiedReview -->|Clean| Done([Feature Complete!])
 
-    ImplLoop -->|Yes| Implementer[Implementer Agent<br/>Tasks 1-N]
-    Implementer --> CheckContext{Context < 50%?}
-    CheckContext -->|Yes| ResumeImpl[Resume with More Tasks]
-    ResumeImpl --> Implementer
-    CheckContext -->|No| Review{{Unified Reviewer<br/>Spec + Code Quality}}
-    Review -->|Fixes Needed| ResumeImpl2[Resume Implementer]
-    ResumeImpl2 --> Review
-    Review -->|Approved| ImplLoop
-
-    ImplLoop -->|All Complete| Finish[/finishing-a-development-branch/]
-    Finish --> Done([Feature Complete!])
+    PatchParty --> Triage[Triage]
+    Triage --> BugFix[Fix Subagents]
+    BugFix -->|2 Fails| RubberDuck[/rubber-duck/]
+    RubberDuck --> BugFix
+    BugFix -->|Design Gap| DreamFirst
+    BugFix -->|Fixed| BugsDoc[(bugs.md)]
+    BugsDoc -->|More| Triage
+    BugsDoc -->|Done| Done
 
     %% Styling
     classDef reviewNode fill:#ff6b6b,stroke:#c92a2a,color:#fff
@@ -81,42 +85,43 @@ flowchart TD
     classDef docNode fill:#51cf66,stroke:#2f9e44,color:#fff
     classDef cmdNode fill:#ffd43b,stroke:#f59f00,color:#000
 
-    class DesignReview,SimpleGap,SimpleFinal,OrcPhase3,BatchReview,OrcPhase5,Review reviewNode
-    class Phase1,Phase2,Phase3,Phase4,Phase5,Phase6,SimpleOutline,SimpleDetail,OrcPhase2,BatchWriter,Implementer agentNode
-    class DesignDoc,PlanDoc docNode
-    class Brainstorm,PlanCmd,ExecCmd,Simple,Orch,GoAgents,Finish cmdNode
+    class DesignReview,SimpleGap,SimpleFinal,STGap,BatchReview,FinalReview,UnifiedReview reviewNode
+    class Phase1,Phase2,Phase3,Phase4,Phase5,Phase6,SimpleOutline,SimpleDetail,STOutline,STFix,BatchWriter,FixAgent,FeedbackFix,Impl agentNode
+    class DesignDoc,ValidatedOutline,PlanDoc,BugsDoc docNode
+    class DreamFirst,PlanCmd,Simple,StoryTime,Maestro,GoTimeCmd,GoTime,PatchParty,RubberDuck cmdNode
 ```
 
 ## Legend
 
 - **Yellow Boxes** - Skills/Commands you invoke
-- **Blue Boxes** - Agent actions (task creation, writing)
+- **Blue Boxes** - Agent actions (task creation, writing, fixing)
 - **Red Diamonds** - Review stages (Opus subagents)
 - **Green Cylinders** - Documents produced
 - **Gray Diamonds** - Decision points
 
 ## Key Review Stages
 
-1. **Design Review** - Validates design before planning (brainstorming)
-2. **Gap Analysis** - Finds structural gaps in task outline (planning)
-3. **Batch Reviews** - Incremental quality checks per batch (orchestrator only)
-4. **Final Plan Review** - Verifies complete plan executability (planning)
-5. **Unified Review** - Checks spec compliance + code quality (execution)
+1. **Design Review** - Validates design before planning (dream-first)
+2. **Gap Analysis** - Finds structural gaps in task outline (story-time)
+3. **Batch Reviews** - Incremental quality checks per batch (blueprint-maestro)
+4. **Final Plan Review** - Verifies complete plan executability (blueprint-maestro)
+5. **Unified Review** - Checks spec compliance + code quality (go-time)
 
 ## Workflow Paths
 
 **Simple Feature (< 5-7 tasks):**
 ```
-brainstorming-to-plan → plan-from-design → implementation-planning → execute-plan
+dream-first → blueprint → go-time
 ```
 
 **Complex Feature (8+ tasks):**
 ```
-brainstorming-to-plan → plan-from-design → implementation-planning-orchestrator → execute-plan
+dream-first → story-time → blueprint-maestro → go-time
 ```
 
-## Agent Reuse Pattern
+## Agent Patterns
 
-- **Orchestrator:** Fresh agent per batch (avoid context limits)
-- **Go-agents:** Resume same agent while context allows (efficient reuse)
+- **story-time:** Fresh fix agents for gap repairs (no resumed agents)
+- **blueprint-maestro:** Fresh writer per batch, fresh fix agents for repairs, context checkpoints with handoff
+- **go-time:** Resume same agent while context allows (efficient reuse)
 - **Reviews:** Always fresh Opus subagents (unbiased perspective)

@@ -214,11 +214,13 @@ Once design is validated and reviewed, hand off to implementation planning.
 **Design document:** `docs/<feature-name>/design.md`
 **User stories:** `docs/<feature-name>/stories.gherkin` (if applicable)
 
-**To create the implementation plan, use:**
+**To break down into tasks and plan the implementation, use:**
 
 ```
-/blueprint-maestro docs/<feature-name>/design.md
+/story-time <feature-name>
 ```
+
+This decomposes the design into a validated task outline, then use `/blueprint-maestro` for detailed planning. Or use `/blueprint <feature-name>` which routes automatically.
 
 ---
 
