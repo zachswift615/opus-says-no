@@ -1,6 +1,6 @@
 ---
 name: blueprint-maestro
-description: Orchestrate multi-agent implementation planning with batched writing and incremental reviews for plans of any size
+description: Orchestrate multi-agent implementation planning with batched writing and incremental reviews for plans of any size. Use when you have 8+ complex tasks and want highest quality detailed planning.
 model: claude-opus-4-5-20251101
 ---
 
@@ -16,11 +16,13 @@ Coordinate multiple agents to write comprehensive implementation plans in batche
 
 **Announce at start:** "I'm using blueprint-maestro to create detailed implementation plans from the validated task outline."
 
-**Input:** A plan file at `docs/<feature-name>/plan.md` containing a validated task outline (produced by story-time or manually).
+**Input:** A plan file at `docs/{feature-name}/plan.md` containing a validated task outline (produced by story-time or manually).
 
 **Output:** The same plan file, extended with detailed implementation for every task.
 
 **Feature directory:** Should already exist with `design.md` and a task outline in `plan.md`.
+
+**Success at a glance:** All tasks detailed with complete code, all file paths specific, all verification steps clear, all integrations explicit, approved by batch and final reviewers, confidence High or Medium. See [Success Criteria](#success-criteria) for the full checklist.
 
 ---
 
@@ -32,20 +34,25 @@ Read ONLY the "## Planning Progress" and "## Detailed Planning Progress" section
 
 ### Fresh Start
 
-**Indicators:** Plan file has a task outline and "Gap analysis complete" is checked, but NO "## Detailed Planning Progress" section exists, or it shows no completed batches.
+**Indicators:**
+- Plan file has a task outline
+- "Gap analysis complete" is checked
+- NO "## Detailed Planning Progress" section exists, or it shows no completed batches
 
 **Action:**
-1. Read the design document once (to have context for the plan header if needed)
+1. Read the design document once (for context)
 2. Add the detailed planning checkboxes to Planning Progress if not present
 3. Start at Phase 1 (Batched Detailed Planning) from batch 1
 
 ### Resume
 
-**Indicators:** Plan file has a "## Detailed Planning Progress" section with some batches marked complete, and/or a "## Planning Handoff" section exists.
+**Indicators:**
+- "## Detailed Planning Progress" section exists with some batches marked complete, OR
+- "## Planning Handoff" section exists
 
 **Action:**
-1. Read the "## Planning Handoff" section (if present) to find which batch is next
-2. Or determine the next batch from the Detailed Planning Progress section
+1. Read "## Planning Handoff" (if present) → find which batch is next
+2. Otherwise, determine next batch from Detailed Planning Progress section
 3. Continue from that batch in Phase 1 (Batched Detailed Planning)
 
 ---
@@ -81,6 +88,15 @@ After a background agent completes:
 | Per-agent completion check | ~1-2k | Summary + progress table only |
 | Orchestrator tracking/decisions | ~5-10k | Status updates, batch decisions |
 | **Target total** | **<50k** | For a full planning session |
+
+**Cumulative tracking example (12-task plan):**
+| After | Cumulative | % of 200k | Action |
+|-------|-----------|-----------|--------|
+| Design doc read | ~10k | 5% | Continue |
+| Batch 1 (write + review + check) | ~14k | 7% | Continue |
+| Batch 2 (write + review + fix + re-review + check) | ~20k | 10% | Continue |
+| Batch 3 (write + review + check) | ~24k | 12% | Continue |
+| ... | ... | ... | Check at 50% → handoff if needed |
 
 ---
 
@@ -121,7 +137,7 @@ Batch Planning Loop:
   ├─ Batch Writer Agent (fresh agent per batch)
   ├─ Batch Reviewer Agent (fresh agent per batch)
   ├─ Spawn FRESH Fix Agent if fixes needed
-  └─ Context Checkpoint → Above 70%? Write handoff, stop.
+  └─ Context Checkpoint → Above 50%? Write handoff, stop.
         ↓
    More tasks? → Next batch
         ↓ All tasks detailed
@@ -289,8 +305,8 @@ Spawn a **FRESH fix agent** (do NOT resume the batch writer):
 ```
 You are a fix agent for Batch [N] (Tasks [X-Y]) of an implementation plan.
 
-**Plan file:** docs/<feature-name>/plan.md
-**Design document:** docs/<feature-name>/design.md
+**Plan file:** docs/{feature-name}/plan.md  (substitute the actual feature directory name)
+**Design document:** docs/{feature-name}/design.md
 
 **Your job:**
 1. Read the plan file
@@ -320,7 +336,7 @@ After the fix agent completes:
 
 **After each batch cycle completes (write → review → fix if needed → approve), check your own context usage.**
 
-**If you estimate your context is above ~70% full:**
+**If you estimate your context is above ~50% full:**
 
 1. Spawn a background handoff agent:
 
@@ -332,7 +348,7 @@ After the fix agent completes:
 - `prompt`:
 
 ```
-Read docs/<feature-name>/plan.md. Add a "## Planning Handoff" section at the end with:
+Read docs/{feature-name}/plan.md. Add a "## Planning Handoff" section at the end with:
 
 - Which batches are complete (list batch numbers and task ranges)
 - Which batch is next (batch number and task range)
@@ -344,11 +360,11 @@ Write this to the plan file. Return a 2-sentence summary.
 
 2. After handoff agent completes, tell the user:
 
-**"Context is getting full. Run `/blueprint-maestro docs/<feature-name>/plan.md` in a fresh session to continue planning from where I left off."**
+**"Context is getting full. Run `/blueprint-maestro docs/{feature-name}/plan.md` in a fresh session to continue planning from where I left off."**
 
 3. **Stop.** Do not attempt another batch.
 
-**If context is below ~70%:**
+**If context is below ~50%:**
 - Continue to next batch
 
 #### 1.5: Update Progress
@@ -430,7 +446,7 @@ I'm spawning feedback fix agent to address final review findings.
 ```
 You are a fix agent for final review feedback on an implementation plan.
 
-**Plan file:** docs/<feature-name>/plan.md
+**Plan file:** docs/{feature-name}/plan.md
 
 Read the "## Final Review Results" section for all feedback.
 
@@ -510,8 +526,8 @@ Read the **last 30 lines** of the agent's output file to get the summary.
 
 **"Implementation plan complete and ready for execution."**
 
-**Feature directory:** `docs/<feature-name>/`
-**Plan:** `docs/<feature-name>/plan.md`
+**Feature directory:** `docs/{feature-name}/`
+**Plan:** `docs/{feature-name}/plan.md`
 
 **Quality metrics:**
 - Detailed planning: [M] batches, [K] review iterations
@@ -522,13 +538,13 @@ Read the **last 30 lines** of the agent's output file to get the summary.
 **To execute this plan, use:**
 
 ```
-/go-time <feature-name>
+/go-time {feature-name}
 ```
 
 **After execution, if bugs remain:**
 
 ```
-/patch-party <feature-name> <bug descriptions>
+/patch-party {feature-name} {bug descriptions}
 ```
 
 ---
@@ -572,7 +588,7 @@ After all batches:
 
 After each batch cycle:
 - Check context usage
-- Write handoff and stop if above 70%
+- Write handoff and stop if above 50%
 - Fresh session picks up seamlessly via Resume path
 
 ---
@@ -608,13 +624,13 @@ After each batch cycle:
 
 ### Context Running Low
 
-**Symptom:** You're at 70%+ context during orchestration
+**Symptom:** You're at 50%+ context during orchestration
 
 **Action:**
 - Follow the Context Checkpoint protocol (Phase 1.4)
 - Write planning handoff and stop
 - User invokes `/blueprint-maestro` again — Resume path picks up automatically
-- This should NOT happen before at least 3-4 batches if you followed the Context Budget Protocol
+- This should NOT happen before at least 2-3 batches if you followed the Context Budget Protocol
 
 ### Resume Not Working
 
