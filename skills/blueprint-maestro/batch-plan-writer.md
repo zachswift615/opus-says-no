@@ -177,15 +177,16 @@ After writing your batch:
 
 1. **Write all detailed implementation** directly to the plan file. Append your tasks under the existing content, following the task structure format.
 2. **Update the "Detailed Planning Progress"** section in the plan file to mark your batch as complete.
-3. **Your final message** (what the orchestrator sees) must be ONLY a 2-3 sentence summary:
+3. **Write a summary file** to `docs/{feature-name}/.maestro/batch-{N}-writer.md` (create the `.maestro/` directory if it doesn't exist). The summary should be 2-3 sentences:
    - Which tasks you completed (by number)
    - Any tasks deferred and why
    - Whether you can handle review feedback if resumed
+4. **Your final message** should match the summary file content.
 
-Example final message:
+Example summary file content:
 > Completed Tasks 5-8. All tasks written with full TDD steps and complete code. Ready for review feedback if resumed.
 
-Do NOT return the detailed implementation in your response — it belongs in the plan file only.
+**IMPORTANT:** Never write files to `/tmp/` or any temporary directory. All output goes to the plan file and the `.maestro/` summary file within the feature directory.
 
 ---
 

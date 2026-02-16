@@ -20,7 +20,7 @@ Coordinate multiple agents to write comprehensive implementation plans in batche
 
 **Output:** The same plan file, extended with detailed implementation for every task.
 
-**Feature directory:** Should already exist with `design.md` and a task outline in `plan.md`.
+**Feature directory:** Should already exist with `design.md` and a task outline in `plan.md`. Agent summaries are written to `docs/{feature-name}/.maestro/` (created automatically by agents).
 
 **Success at a glance:** All tasks detailed with complete code, all file paths specific, all verification steps clear, all integrations explicit, approved by batch and final reviewers, confidence High or Medium. See [Success Criteria](#success-criteria) for the full checklist.
 
@@ -65,8 +65,18 @@ Read ONLY the "## Planning Progress" and "## Detailed Planning Progress" section
 Every agent spawned by the orchestrator MUST use `run_in_background: true`. **No exceptions.** This is the single most important rule in the entire skill.
 
 ### Rule 2: Agents Write to File, Return a Summary
-Every agent prompt MUST end with this instruction:
-> **CRITICAL:** Write all detailed output directly to the plan file. Your final message must be ONLY a 2-3 sentence summary of what you accomplished and any blockers. Do NOT return detailed content in your response — it belongs in the file only.
+Every agent prompt MUST include these instructions:
+> **CRITICAL:** Write all detailed output directly to the plan file. Do NOT return detailed content in your response — it belongs in the file only.
+> **SUMMARY FILE:** After writing to the plan file, write a 2-3 sentence summary of what you accomplished (and any blockers) to your designated summary file in `docs/{feature-name}/.maestro/`. Create the `.maestro/` directory if it doesn't exist.
+
+**NEVER instruct agents to write to `/tmp/` or any temporary directory.** All agent working files go in the feature's `.maestro/` directory.
+
+Summary file naming convention:
+- Batch writer: `docs/{feature-name}/.maestro/batch-{N}-writer.md`
+- Batch reviewer: `docs/{feature-name}/.maestro/batch-{N}-review.md`
+- Fix agent: `docs/{feature-name}/.maestro/batch-{N}-fix.md`
+- Final reviewer: `docs/{feature-name}/.maestro/final-review.md`
+- Handoff: `docs/{feature-name}/.maestro/handoff.md`
 
 ### Rule 3: Don't Read Source Code in the Orchestrator
 The orchestrator reads ONLY:
@@ -77,15 +87,15 @@ All source code reading happens inside agents in their own context windows. Pass
 
 ### Rule 4: Check Completion Leanly
 After a background agent completes:
-1. Read ONLY the **last 30 lines** of the agent's output file (use `Read` with `offset`) to get the summary
+1. Read the agent's summary file from `docs/{feature-name}/.maestro/` (e.g., `batch-1-writer.md`) to get the summary
 2. Optionally read just the "Planning Progress" table from the plan file to verify the checkbox updated
-3. **NEVER** read the full output file or the full plan file back into the orchestrator
+3. **NEVER** read the full plan file back into the orchestrator
 
 ### Context Budget Target
 | Item | Tokens | Notes |
 |------|--------|-------|
 | Design doc read | ~5-15k | One-time, acceptable |
-| Per-agent completion check | ~1-2k | Summary + progress table only |
+| Per-agent completion check | ~1-2k | .maestro/ summary file + progress table only |
 | Orchestrator tracking/decisions | ~5-10k | Status updates, batch decisions |
 | **Target total** | **<50k** | For a full planning session |
 
@@ -265,7 +275,7 @@ I'm spawning batch writer agent for Tasks [X-Y].
 
 #### 1.2: Spawn Batch Reviewer Agent
 
-After the writer's background task completes (check summary for success):
+After the writer's background task completes (read `docs/{feature-name}/.maestro/batch-{N}-writer.md` for success):
 
 ```
 I'm spawning batch reviewer agent for Tasks [X-Y].
@@ -289,7 +299,7 @@ I'm spawning batch reviewer agent for Tasks [X-Y].
 
 #### 1.3: Decision Point: Fixes Needed?
 
-Read the **last 30 lines** of the reviewer's output file to get the recommendation.
+Read the reviewer's summary from `docs/{feature-name}/.maestro/batch-{N}-review.md` to get the recommendation.
 
 **If Critical or Important issues found:**
 
@@ -321,10 +331,10 @@ You are a fix agent for Batch [N] (Tasks [X-Y]) of an implementation plan.
 - Exact commands with expected output (copy-pasteable)
 - Integration checks showing how tasks connect
 
-**CRITICAL:** Write all fixes directly to the plan file. Your final message must be ONLY a 2-3 sentence summary of what you fixed. Do NOT return detailed content in your response — it belongs in the file only.
+**CRITICAL:** Write all fixes directly to the plan file. Then write a 2-3 sentence summary of what you fixed to `docs/{feature-name}/.maestro/batch-{N}-fix.md` (create the `.maestro/` directory if needed). Do NOT return detailed content in your response — it belongs in the file only.
 ```
 
-After the fix agent completes:
+After the fix agent completes (read `docs/{feature-name}/.maestro/batch-{N}-fix.md` for summary):
 - Re-run batch reviewer (fresh agent, backgrounded) to verify fixes
 - Repeat fix → review cycle until batch approved
 - **Maximum 3 fix iterations per batch.** If still failing after 3, note remaining issues in Detailed Planning Progress and move to next batch.
@@ -355,10 +365,10 @@ Read docs/{feature-name}/plan.md. Add a "## Planning Handoff" section at the end
 - Total tasks remaining
 - Any notes about issues encountered during planning
 
-Write this to the plan file. Return a 2-sentence summary.
+Write this to the plan file. Then write a 2-sentence summary to docs/{feature-name}/.maestro/handoff.md (create the .maestro/ directory if needed).
 ```
 
-2. After handoff agent completes, tell the user:
+2. After handoff agent completes (read `docs/{feature-name}/.maestro/handoff.md` for summary), tell the user:
 
 **"Context is getting full. Run `/blueprint-maestro docs/{feature-name}/plan.md` in a fresh session to continue planning from where I left off."**
 
@@ -419,7 +429,7 @@ I'm spawning final plan reviewer to verify the complete implementation plan.
 
 ### Check Completion
 
-Read the **last 30 lines** of the agent's output file to get:
+Read the reviewer's summary from `docs/{feature-name}/.maestro/final-review.md` to get:
 - Execution confidence level
 - Whether critical issues were found
 - Whether to proceed or spawn a feedback agent
@@ -466,12 +476,12 @@ Read the "## Final Review Results" section for all feedback.
 
 Update the plan file with all changes. Mark sections that were updated.
 
-**CRITICAL:** Your final message must be ONLY a 2-3 sentence summary of what you changed and whether a re-review is needed. Do NOT return detailed changes in your response.
+**CRITICAL:** Write all fixes directly to the plan file. Then write a 2-3 sentence summary of what you changed and whether a re-review is needed to `docs/{feature-name}/.maestro/final-fix.md` (create the `.maestro/` directory if needed). Do NOT return detailed changes in your response.
 ```
 
 ### Decision Point: Re-Review?
 
-Read the **last 30 lines** of the agent's output file to get the summary.
+Read the fix agent's summary from `docs/{feature-name}/.maestro/final-fix.md`.
 
 **If significant changes made:**
 - Re-run final plan reviewer (fresh agent, backgrounded)

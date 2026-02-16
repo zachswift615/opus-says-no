@@ -324,15 +324,16 @@ These patterns indicate execution problems:
 **You are running as a background agent.** To keep the orchestrator's context lean:
 
 1. **Write your full review** to the plan file under a `## Batch [N] Review` section (where N is the batch number). Include all details, issues, and recommendations there.
-2. **Your final message** (what the orchestrator sees) must be ONLY a 2-3 sentence summary:
+2. **Write a summary file** to `docs/{feature-name}/.maestro/batch-{N}-review.md` (create the `.maestro/` directory if it doesn't exist). The summary should be 2-3 sentences:
    - Recommendation: Ready for Execution / Minor Fixes Needed / Major Issues
    - Critical/important issue count
    - One sentence on biggest issue (if any)
+3. **Your final message** should match the summary file content.
 
-Example final message:
+Example summary file content:
 > Recommendation: Minor Fixes Needed. Found 0 critical, 2 important issues. Task 6 is missing the integration test for the API endpoint. Review details written to plan file.
 
-Do NOT return the full review in your response — it belongs in the plan file only.
+**IMPORTANT:** Never write files to `/tmp/` or any temporary directory. All output goes to the plan file and the `.maestro/` summary file within the feature directory.
 
 ---
 

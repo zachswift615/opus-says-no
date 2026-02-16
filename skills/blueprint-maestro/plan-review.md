@@ -390,15 +390,16 @@ These patterns indicate execution problems:
 
 1. **Write your full review** to the plan file under a `## Final Review Results` section. Include all details, issues, and recommendations there.
 2. **Update the Planning Progress** checklist in the plan file to mark "Final review complete".
-3. **Your final message** (what the orchestrator sees) must be ONLY a 2-3 sentence summary:
+3. **Write a summary file** to `docs/{feature-name}/.maestro/final-review.md` (create the `.maestro/` directory if it doesn't exist). The summary should be 2-3 sentences:
    - Execution confidence: High/Medium/Low
    - Critical issue count
    - One sentence overall assessment
+4. **Your final message** should match the summary file content.
 
-Example final message:
+Example summary file content:
 > Execution confidence: High (92%). Found 0 critical issues, 2 important issues. Plan is well-structured and executable with minor clarifications needed in Tasks 7 and 12.
 
-Do NOT return the full review in your response — it belongs in the plan file only.
+**IMPORTANT:** Never write files to `/tmp/` or any temporary directory. All output goes to the plan file and the `.maestro/` summary file within the feature directory.
 
 ---
 
