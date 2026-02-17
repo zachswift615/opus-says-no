@@ -10,10 +10,11 @@ Time to make it real.
 Execute plans by dispatching subagents that can be resumed for follow-up questions, reused across multiple tasks when context allows, and reviewed in batches.
 
 **Core principles:**
-- Resume > re-dispatch (preserve context for questions)
-- Reuse agents while context is available
+- Resume only when subagent has plenty of context (>= 70%)
+- Reuse agents while context is abundant, fresh agents when not
 - Batch reviews after agent exhaustion (not per-task)
 - One unified reviewer (spec + quality combined)
+- Monitor your OWN context - hand off cleanly before exhaustion
 
 ## Your Role: Orchestrator Only
 
@@ -41,6 +42,46 @@ If you find yourself about to write code or make changes, STOP. Dispatch a subag
 - You have an implementation plan with discrete tasks
 - Tasks are mostly independent (can be done in sequence)
 - You want efficient execution with minimal agent spawns
+- Continuing a previous go-time session (user tells you which task/batch to resume from)
+
+## Starting Fresh vs. Continuing
+
+**Fresh start:** Load the plan, extract all tasks, create TodoWrite, begin from Task 1.
+
+**Continuing from a previous session:** The user will tell you something like "continue from task 5" or "pick up at batch 3." When continuing:
+
+1. Load the plan and extract all tasks as normal
+2. Create TodoWrite but mark already-completed tasks as done (check git log / existing code)
+3. Skip to the specified task and begin dispatching from there
+4. Everything else works the same
+
+The continuation prompt from the previous session tells you exactly where to pick up.
+
+## Orchestrator Context Self-Monitoring
+
+**You are not immune to context exhaustion.** After each batch review completes, honestly assess your own remaining context:
+
+- How many batches have you orchestrated so far?
+- How many subagent dispatches, resumes, and review cycles?
+- How much task text and review output have you processed?
+
+**If you estimate less than 50% of your own context remains**, do NOT start another batch. Instead, output a continuation prompt and stop:
+
+```
+---
+## Continuation Prompt
+
+Use go-time to continue executing the plan at: [plan file path]
+
+**Resume from:** Task [N] ([task name])
+**Completed so far:** Tasks 1-[M] (reviewed and approved)
+**Current branch:** [branch name]
+**Last commit:** [sha] - [message]
+**Notes:** [Any context the next session needs - e.g., "Task 3 had a reviewer flag about X, keep an eye on that pattern"]
+---
+```
+
+This is lightweight by design. The plan file has all the detail; the next session just needs to know where to pick up.
 
 ## The Process
 
@@ -49,42 +90,52 @@ digraph go_agents {
     rankdir=TB;
 
     "Load plan, extract tasks, create TodoWrite" [shape=box];
+    "Continuing? Skip to resume task" [shape=diamond];
     "Dispatch implementer with Task 1" [shape=box];
     "Implementer returns (implements, tests, commits)" [shape=diamond];
 
     "Resume with answer" [shape=box];
-    "Check context capacity" [shape=diamond];
+    "Check subagent context capacity" [shape=diamond];
     "Resume with next task" [shape=box];
     "Dispatch unified reviewer for batch" [shape=box];
     "Reviewer approves?" [shape=diamond];
-    "Resume implementer to fix (if capacity)" [shape=box];
+    "Resume implementer to fix (if capacity >= 70%)" [shape=box];
     "Dispatch fix agent" [shape=box];
     "More tasks remain?" [shape=diamond];
+    "Check orchestrator context" [shape=diamond];
+    "Output continuation prompt & stop" [shape=box, style=filled, fillcolor=lightyellow];
     "Dispatch fresh implementer" [shape=box];
     "Final review + finish branch" [shape=box];
 
-    "Load plan, extract tasks, create TodoWrite" -> "Dispatch implementer with Task 1";
+    "Load plan, extract tasks, create TodoWrite" -> "Continuing? Skip to resume task";
+    "Continuing? Skip to resume task" -> "Dispatch implementer with Task 1" [label="fresh start"];
+    "Continuing? Skip to resume task" -> "Dispatch implementer with Task 1" [label="continue from task N\n(skip completed)"];
+
     "Dispatch implementer with Task 1" -> "Implementer returns (implements, tests, commits)";
 
     "Implementer returns (implements, tests, commits)" -> "Resume with answer" [label="needs_input"];
     "Resume with answer" -> "Implementer returns (implements, tests, commits)";
 
-    "Implementer returns (implements, tests, commits)" -> "Check context capacity" [label="task_complete"];
+    "Implementer returns (implements, tests, commits)" -> "Check subagent context capacity" [label="task_complete"];
 
-    "Check context capacity" -> "Resume with next task" [label="capacity > 50%\n& tasks remain"];
+    "Check subagent context capacity" -> "Resume with next task" [label="capacity >= 70%\n& tasks remain"];
     "Resume with next task" -> "Implementer returns (implements, tests, commits)";
 
-    "Check context capacity" -> "Dispatch unified reviewer for batch" [label="capacity <= 50%\nor no more tasks"];
+    "Check subagent context capacity" -> "Dispatch unified reviewer for batch" [label="capacity < 70%\nor no more tasks"];
 
     "Dispatch unified reviewer for batch" -> "Reviewer approves?";
     "Reviewer approves?" -> "More tasks remain?" [label="yes"];
-    "Reviewer approves?" -> "Resume implementer to fix (if capacity)" [label="no & capacity"];
-    "Reviewer approves?" -> "Dispatch fix agent" [label="no & no capacity"];
-    "Resume implementer to fix (if capacity)" -> "Dispatch unified reviewer for batch";
+    "Reviewer approves?" -> "Resume implementer to fix (if capacity >= 70%)" [label="no & capacity"];
+    "Reviewer approves?" -> "Dispatch fix agent" [label="no & low capacity"];
+    "Resume implementer to fix (if capacity >= 70%)" -> "Dispatch unified reviewer for batch";
     "Dispatch fix agent" -> "Dispatch unified reviewer for batch";
 
-    "More tasks remain?" -> "Dispatch fresh implementer" [label="yes"];
+    "More tasks remain?" -> "Check orchestrator context" [label="yes"];
     "More tasks remain?" -> "Final review + finish branch" [label="no"];
+
+    "Check orchestrator context" -> "Dispatch fresh implementer" [label="orchestrator\n>= 50% context"];
+    "Check orchestrator context" -> "Output continuation prompt & stop" [label="orchestrator\n< 50% context"];
+
     "Dispatch fresh implementer" -> "Implementer returns (implements, tests, commits)";
 }
 ```
@@ -124,9 +175,13 @@ Implementers self-report remaining capacity:
 }
 ```
 
-**Decision rule:**
-- `>= 50%` capacity remaining → resume with next task
-- `< 50%` capacity remaining → trigger review, then fresh agent
+**Subagent decision rule (conservative - avoid wasting context on bad output):**
+- `>= 70%` capacity remaining → resume with next task
+- `< 70%` capacity remaining → trigger review, then fresh agent
+
+**Orchestrator self-check (after each batch review completes):**
+- `>= 50%` own context remaining → continue with next batch
+- `< 50%` own context remaining → output continuation prompt and stop
 
 ## Prompt Templates
 
@@ -193,7 +248,7 @@ Task tool (general-purpose):
 
 ### Resuming Implementer for Fixes
 
-If reviewer finds issues and implementer has capacity:
+If reviewer finds issues and implementer has capacity (>= 70%):
 
 ```
 Task tool:
@@ -219,11 +274,11 @@ Task tool:
 ## Example Workflow
 
 ```
-You: Using go-agents to execute this plan.
+You: Using go-time to execute this plan.
 
 [Read plan, extract 6 tasks, create TodoWrite]
 
---- Agent 1: Tasks 1-3 ---
+--- Agent 1: Tasks 1-2 ---
 
 [Dispatch implementer with Task 1: Auth middleware]
 
@@ -239,86 +294,107 @@ You: "JWT with refresh tokens. The auth service at /api/auth handles token refre
 Implementer returns:
 {
   "status": "task_complete",
-  "context_capacity": "80%",
+  "context_capacity": "75%",
   "summary": "Implemented JWT auth middleware",
   "files_changed": ["src/auth/jwt.ts", "src/middleware/auth.ts"],
   "tests_passing": true,
   "committed": "abc123f - Add JWT auth middleware with refresh token support"
 }
 
-[80% capacity - resume with Task 2]
+[75% capacity >= 70% threshold - resume with Task 2]
 
 Implementer returns:
 {
   "status": "task_complete",
-  "context_capacity": "55%",
+  "context_capacity": "55%",  // Below 70% threshold
   "committed": "def456a - Add user session management",
   ...
 }
 
-[55% - resume with Task 3]
+[55% < 70% - trigger review, do NOT resume with another task]
+
+[Dispatch unified reviewer for Tasks 1-2]
+
+Reviewer returns: { "overall": { "verdict": "approved" } }
+
+[Mark Tasks 1-2 complete]
+
+[Check own orchestrator context - still good, continue]
+
+--- Agent 2: Tasks 3-4 ---
+
+[Dispatch fresh implementer with Task 3]
 
 Implementer returns:
 {
   "status": "task_complete",
-  "context_capacity": "30%",  // Below threshold
+  "context_capacity": "60%",  // Below 70%
   "committed": "789bcd0 - Add rate limiting middleware",
   ...
 }
 
-[30% capacity - trigger review]
+[60% < 70% - trigger review after just 1 task, that's fine]
 
-[Dispatch unified reviewer for Tasks 1-3]
+[Dispatch unified reviewer for Task 3]
 
-Reviewer returns:
-{
-  "spec_compliance": "pass",
-  "code_quality": {
-    "status": "issues_found",
-    "issues": [
-      {"severity": "important", "issue": "Missing rate limiting on refresh endpoint"}
-    ]
-  }
-}
+Reviewer returns: { "overall": { "verdict": "needs_fixes", ... } }
 
-[Implementer at 30% - dispatch fix agent instead of resuming]
+[Implementer at 60% - below 70%, dispatch fix agent instead of resuming]
 
-[Fix agent addresses rate limiting]
+[Fix agent addresses issues, re-review passes]
 
-[Re-review - passes]
+[Dispatch fresh implementer with Task 4, completes at 65%, review passes]
 
-[Mark Tasks 1-3 complete]
+[Mark Tasks 3-4 complete]
 
---- Agent 2: Tasks 4-6 ---
+[Check own orchestrator context - estimate ~45% remaining, below 50%]
 
-[Dispatch fresh implementer with Task 4]
-...
+--- Orchestrator Context Low - Hand Off ---
 
---- Completion ---
+Output:
+---
+## Continuation Prompt
 
-[All tasks done, final review passes]
+Use go-time to continue executing the plan at: docs/plans/auth-system.md
 
-[Use finishing-a-development-branch skill]
+**Resume from:** Task 5 (API rate limiting)
+**Completed so far:** Tasks 1-4 (reviewed and approved)
+**Current branch:** feature/auth-system
+**Last commit:** aaa111b - Fix rate limiting per reviewer feedback
+**Notes:** Reviewer flagged token validation duplication in batch 1 -
+was fixed but watch for the pattern recurring in remaining tasks.
+---
 
-Done!
+[Stop - do not start another batch]
+```
+
+### Example: Continuing a Previous Session
+
+```
+User: "Use go-time to continue the auth plan from task 5"
+
+[Read plan, extract all 6 tasks]
+[Create TodoWrite, mark tasks 1-4 as already completed]
+[Start dispatching from Task 5]
+[Everything else proceeds normally]
 ```
 
 ## Advantages Over Traditional Approach
 
-**vs. Fresh agent per task:**
-- Fewer agent spawns (3-4 vs 6+ for 6 tasks)
-- Context preserved across related tasks
-- Agent builds understanding of the codebase
+**Conservative resume (70% threshold):**
+- Agents only get more work when they have plenty of room
+- Avoids degraded output from context-cramped agents
+- Fresh agents are cheap; bad output from exhausted agents is expensive
 
-**vs. Reviews after every task:**
-- Fewer review cycles (2 batch reviews vs 6 individual)
+**Orchestrator self-monitoring:**
+- Session can span multiple batches without running out of orchestrator context
+- Clean handoff to next session when context gets low
+- No lost progress - continuation prompt tells next session exactly where to pick up
+
+**Batched reviews:**
+- Fewer review cycles than per-task reviews
 - Reviewer sees related changes together
 - Can catch cross-task issues
-
-**vs. Separate spec + quality reviews:**
-- One reviewer pass instead of two
-- Faster iteration
-- Unified feedback
 
 **Question handling via resume:**
 - True context preservation (not re-explaining)
@@ -343,16 +419,21 @@ Done!
 - Resume with: "Please revert the extra changes. Only implement what's in your current task."
 
 **If reviewer finds issues:**
-- Resume original implementer if capacity allows (they have context)
-- Otherwise dispatch fix agent with specific instructions
+- Resume original implementer ONLY if capacity >= 70% (they have context AND room)
+- Otherwise dispatch a fresh fix agent with specific instructions
 - Always re-review after fixes
 
 **If subagent fails a task:**
 - NEVER try to fix manually - this pollutes YOUR context and defeats the entire purpose of orchestration
 - Dispatch a fix agent with specific instructions about what went wrong
 - Give them the error output and clear guidance
-- Or resume the original if they have capacity and just hit a fixable issue
+- Only resume the original if they have >= 70% capacity AND just hit a fixable issue
 - Remember: you are the orchestrator, not the implementer
+
+**If YOUR orchestrator context is getting low:**
+- Don't try to squeeze in "just one more batch"
+- Output the continuation prompt and stop cleanly
+- The next session picks up with full context - that's the whole point
 
 ## Integration
 

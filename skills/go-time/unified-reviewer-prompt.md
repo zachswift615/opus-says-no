@@ -228,12 +228,12 @@ Task tool (general-purpose):
 
 Check `blocking_issues` and decide:
 
-**If original implementer has context capacity:**
-- Resume them with fixes (they have the context)
+**If original implementer has >= 70% context capacity:**
+- Resume them with fixes (they have the context and room to work)
 - Use the "Resume for Fixes" template from implementer-prompt.md
 
-**If original implementer is at low capacity:**
-- Dispatch a fix agent with specific instructions
+**If original implementer is below 70% capacity:**
+- Dispatch a fresh fix agent with specific instructions
 - Give them the blocking issues list and relevant context
 
 After fixes, re-dispatch reviewer to verify.

@@ -113,8 +113,10 @@ Task tool (general-purpose):
     - Substantial work, many files, complex logic: 40-50%
     - Heavy work, feeling context pressure: 20-30%
 
-    Be honest - if you're assigned another task and your context is too full,
-    you'll make mistakes. Better to report low capacity and get a fresh agent.
+    Be honest and conservative. The coordinator will only resume you with
+    another task if you report >= 70%. If your context is getting crowded,
+    report lower - a fresh agent with full context will do better work
+    than a cramped agent making mistakes.
 
     ## What NOT To Do
 
@@ -170,7 +172,7 @@ Task tool:
 
 ## Resume for Fixes Template
 
-When reviewer found issues and implementer has capacity:
+When reviewer found issues and implementer has capacity (>= 70%):
 
 ```
 Task tool:
