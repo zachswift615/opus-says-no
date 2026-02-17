@@ -15,6 +15,7 @@ Execute plans by dispatching subagents that can be resumed for follow-up questio
 - Batch reviews after agent exhaustion (not per-task)
 - One unified reviewer (spec + quality combined)
 - Monitor your OWN context - hand off cleanly before exhaustion
+- Implementers only run tests scoped to their changes; dispatch a test runner subagent for full suite periodically
 
 ## Your Role: Orchestrator Only
 
@@ -395,6 +396,12 @@ User: "Use go-time to continue the auth plan from task 5"
 - Fewer review cycles than per-task reviews
 - Reviewer sees related changes together
 - Can catch cross-task issues
+
+**Scoped test runs + periodic full suite:**
+- Implementers only run tests directly related to their changes (fast feedback, no waiting on slow suites)
+- After every 2-3 batch reviews, dispatch a dedicated test runner subagent to run the full test suite
+- If the test runner finds regressions, dispatch a fix agent with the failure output
+- This keeps implementers fast while still catching cross-task breakage
 
 **Question handling via resume:**
 - True context preservation (not re-explaining)

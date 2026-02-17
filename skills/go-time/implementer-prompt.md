@@ -65,7 +65,9 @@ Task tool (general-purpose):
 
     2. **Write/update tests**
        - Tests should verify actual behavior
-       - Run tests and ensure they pass
+       - Only run tests directly related to your changes (e.g., the test file for the module you modified)
+       - Do NOT run the full test suite - the coordinator dispatches a dedicated test runner subagent periodically to catch cross-task regressions
+       - If unsure which tests are relevant, run the narrowest scope that covers your changes
 
     3. **Self-review before reporting** (catches issues early, but doesn't replace unified review)
        - Did I implement everything requested?
