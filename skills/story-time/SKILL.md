@@ -258,6 +258,15 @@ Read only the Planning Progress section of the plan file to confirm the gap anal
 
 ## Phase 4: Finalize and Handoff
 
+### Commit Plan File
+
+**Commit the plan file to git before handing off.** This ensures the outline is on the main branch and available when a worktree is created later during execution.
+
+```bash
+git add docs/<feature-name>/plan.md
+git commit -m "docs: add <feature-name> task outline"
+```
+
 ### Update Plan Status
 
 Update the plan file status line from "In Progress - Task Outline" to "Outline Complete - Ready for Detailed Planning".

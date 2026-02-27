@@ -63,12 +63,18 @@ flowchart TD
 
     %% Execution
     PlanDoc --> GoTimeCmd[/go-time/]
-    GoTimeCmd --> GoTime[go-time skill]
+    GoTimeCmd --> Worktree[Create Worktree]
+    Worktree --> GoTime[go-time skill]
     GoTime --> Impl[Implementers]
     Impl --> UnifiedReview{{Unified Review<br/>Spec + Code Quality}}
     UnifiedReview -->|Iterate| Impl
-    UnifiedReview -->|Bugs| PatchParty[/patch-party/]
-    UnifiedReview -->|Clean| Done([Feature Complete!])
+    UnifiedReview -->|Complete| TBV[/trust-but-verify/]
+
+    %% Manual Verification
+    TBV --> WalkTests[Walk Through<br/>Manual Test Cases]
+    WalkTests -->|All Pass| LandIt[/land-it/]
+    LandIt --> Done([Feature Complete!<br/>Worktree Cleaned Up])
+    WalkTests -->|Bugs Found| PatchParty[/patch-party/]
 
     PatchParty --> Triage[Triage]
     Triage --> BugFix[Fix Subagents]
@@ -77,7 +83,7 @@ flowchart TD
     BugFix -->|Design Gap| DreamFirst
     BugFix -->|Fixed| BugsDoc[(bugs.md)]
     BugsDoc -->|More| Triage
-    BugsDoc -->|Done| Done
+    BugsDoc -->|Done| LandIt
 
     %% Styling
     classDef reviewNode fill:#ff6b6b,stroke:#c92a2a,color:#fff
@@ -86,9 +92,9 @@ flowchart TD
     classDef cmdNode fill:#ffd43b,stroke:#f59f00,color:#000
 
     class DesignReview,SimpleGap,SimpleFinal,STGap,BatchReview,FinalReview,UnifiedReview reviewNode
-    class Phase1,Phase2,Phase3,Phase4,Phase5,Phase6,SimpleOutline,SimpleDetail,STOutline,STFix,BatchWriter,FixAgent,FeedbackFix,Impl agentNode
+    class Phase1,Phase2,Phase3,Phase4,Phase5,Phase6,SimpleOutline,SimpleDetail,STOutline,STFix,BatchWriter,FixAgent,FeedbackFix,Impl,WalkTests agentNode
     class DesignDoc,ValidatedOutline,PlanDoc,BugsDoc docNode
-    class DreamFirst,PlanCmd,Simple,StoryTime,Maestro,GoTimeCmd,GoTime,PatchParty,RubberDuck cmdNode
+    class DreamFirst,PlanCmd,Simple,StoryTime,Maestro,GoTimeCmd,GoTime,PatchParty,RubberDuck,TBV,LandIt cmdNode
 ```
 
 ## Legend
@@ -106,17 +112,18 @@ flowchart TD
 3. **Batch Reviews** - Incremental quality checks per batch (blueprint-maestro)
 4. **Final Plan Review** - Verifies complete plan executability (blueprint-maestro)
 5. **Unified Review** - Checks spec compliance + code quality (go-time)
+6. **Manual Verification** - User walks through test cases (trust-but-verify)
 
 ## Workflow Paths
 
 **Simple Feature (< 5-7 tasks):**
 ```
-dream-first → blueprint → go-time
+dream-first → blueprint → go-time (worktree) → trust-but-verify → land-it
 ```
 
 **Complex Feature (8+ tasks):**
 ```
-dream-first → story-time → blueprint-maestro → go-time
+dream-first → story-time → blueprint-maestro → go-time (worktree) → trust-but-verify → land-it
 ```
 
 ## Agent Patterns

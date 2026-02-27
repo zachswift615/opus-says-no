@@ -254,12 +254,43 @@ git commit -m "[conventional commit message]"
 **Integration Check:** [How to verify this connects to dependent tasks]
 ```
 
+### Manual Verification Task (Required)
+
+**The last task in every plan MUST be a Manual Verification task.** This task is NOT executed by agents — it provides the test cases that the user walks through during trust-but-verify after implementation.
+
+```markdown
+### Task N: Manual Verification
+
+**Type:** manual-verification
+
+**Source:** Acceptance criteria from design.md, Gherkin scenarios (if any)
+
+**Test Cases:**
+1. [Scenario name]
+   - Setup: [What to prepare]
+   - Steps: [What to do]
+   - Expected: [What should happen]
+
+2. [Scenario name]
+   - Setup: [What to prepare]
+   - Steps: [What to do]
+   - Expected: [What should happen]
+```
+
+**Guidelines for test cases:**
+- Extract from the design doc's acceptance criteria and user stories
+- Cover the happy path AND key edge cases
+- Describe user-observable behavior, not implementation details
+- Include setup steps so the user can reproduce from scratch
+- Be specific: "Click the Submit button" not "Submit the form"
+
 ### Rules for Phase 3
 - Complete code, no "add validation here" placeholders
 - Exact file paths with line numbers for modifications
 - Every task ends with an integration check
 - Commands include expected output
 - All imports/exports explicit
+- **Last task must be Manual Verification** (see above)
 
 ---
 
@@ -345,7 +376,16 @@ Update plan status: `Status: Detailed - Pending Final Review` → `Status: Appro
 
 ## Execution Handoff
 
-After both reviews are complete and all critical issues are resolved, hand off to execution.
+After both reviews are complete and all critical issues are resolved, commit the plan and hand off to execution.
+
+### Commit Plan File
+
+**Commit the plan file to git before handing off.** This ensures the plan is on the main branch and available when a worktree is created during execution.
+
+```bash
+git add docs/<feature-name>/plan.md
+git commit -m "docs: add <feature-name> implementation plan"
+```
 
 ### Final Message
 
@@ -359,19 +399,13 @@ After both reviews are complete and all critical issues are resolved, hand off t
 - Plan review: [N] issues addressed
 - Execution confidence: [High/Medium/Low]
 
-**To execute this plan in a fresh session, use:**
+**To execute this plan, use:**
 
 ```
-/execute-plan docs/<feature-name>/plan.md
+/go-time <feature-name>
 ```
 
-This command will load the plan and invoke go-time for coordinated execution.
-
-**After execution, if bugs remain:**
-
-```
-/patch-party <feature-name> <bug descriptions>
-```
+Go-time will create a worktree and execute the plan. After execution, it hands off to `/trust-but-verify` for manual verification before landing.
 
 ---
 

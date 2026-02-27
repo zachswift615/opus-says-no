@@ -96,10 +96,27 @@ Time to make it real.
 
 **Core principle:** Resume > re-dispatch. Context is expensive.
 
+- **Creates a git worktree** for isolated feature development
 - Agents answer questions via resume (true agent-to-agent communication)
 - Agents continue with next task while context allows
 - Batch review after agent exhaustion, not per-task
 - Unified reviewer checks spec AND quality in one pass
+- Skips the manual verification task (deferred to trust-but-verify)
+- Hands off to trust-but-verify, never directly to land-it
+
+### `trust-but-verify`
+
+The code works. Now prove it.
+
+**Core principle:** Human verification before landing. Trust the code, verify the behavior.
+
+1. Read the plan's manual verification task
+2. Walk user through each test case one at a time
+3. Collect pass/fail/blocked for each
+4. All pass → hand off to `/land-it`
+5. Bugs found → write bugs.md → `/patch-party` (same session or handoff)
+
+**Output:** Verification results, `docs/<feature-name>/bugs.md` (if bugs found)
 
 ### `patch-party`
 
@@ -237,10 +254,17 @@ Dream-First (it's not a bug, it's a design gap)
 For any new feature:
 
 ```
-/dream-first                 # What are we building?
-/blueprint <feature>         # How are we building it?
-/go-time <feature>           # Build it.
-/patch-party <feature> "..."  # Fix what's left.
+/dream-first                      # What are we building?
+/blueprint <feature>              # How are we building it?
+/go-time <feature>                # Build it (in a worktree).
+/trust-but-verify <plan-path>     # Prove it works.
+/land-it                          # Ship it.
+```
+
+If bugs are found during verification:
+```
+/patch-party <feature>            # Fix what's broken.
+/land-it                          # Then ship it.
 ```
 
 If you skip steps, Opus will punish you later.
@@ -304,12 +328,17 @@ flowchart TD
     FinalReview --> PlanDoc
 
     PlanDoc --> GoTimeCmd[/go-time/]
-    GoTimeCmd --> GoTime[go-time skill]
+    GoTimeCmd --> Worktree[Create Worktree]
+    Worktree --> GoTime[go-time skill]
     GoTime --> Impl[Implementers]
     Impl --> UnifiedReview{{Unified Review}}
     UnifiedReview -->|Iterate| Impl
-    UnifiedReview -->|Bugs| PatchParty[/patch-party/]
-    UnifiedReview -->|Clean| Done([Complete!])
+    UnifiedReview -->|Complete| TBV[/trust-but-verify/]
+
+    TBV --> WalkTests[Walk Through<br/>Manual Test Cases]
+    WalkTests -->|All Pass| LandIt[/land-it/]
+    LandIt --> Done([Complete!])
+    WalkTests -->|Bugs Found| PatchParty[/patch-party/]
 
     PatchParty --> Triage[Triage]
     Triage --> FixAgent[Fix Subagents]
@@ -318,14 +347,14 @@ flowchart TD
     FixAgent -->|Design Gap| DreamFirst
     FixAgent -->|Fixed| BugsDoc[(bugs.md)]
     BugsDoc -->|More| Triage
-    BugsDoc -->|Done| Done
+    BugsDoc -->|Done| LandIt
 
     classDef reviewNode fill:#ff6b6b,stroke:#c92a2a,color:#fff
     classDef cmdNode fill:#ffd43b,stroke:#f59f00,color:#000
     classDef docNode fill:#51cf66,stroke:#2f9e44,color:#fff
 
     class DesignReview,GapReview,BatchReview,FinalReview,UnifiedReview reviewNode
-    class DreamFirst,BlueprintCmd,BlueprintSkill,StoryTime,Maestro,GoTimeCmd,GoTime,PatchParty,RubberDuck cmdNode
+    class DreamFirst,BlueprintCmd,BlueprintSkill,StoryTime,Maestro,GoTimeCmd,GoTime,PatchParty,RubberDuck,TBV,LandIt cmdNode
     class DesignDoc,PlanDoc,BugsDoc docNode
 ```
 
@@ -337,15 +366,16 @@ flowchart TD
 
 ```
 /dream-first                   # Explore. Decide. Review.
-        ↓                      # → docs/<feature>/design.md
+        ↓                      # → docs/<feature>/design.md (committed to main)
 /story-time <feature>          # Outline. Gap analysis. Validate.
-        ↓                      # → docs/<feature>/plan.md (outline)
+        ↓                      # → docs/<feature>/plan.md (committed to main)
 /blueprint-maestro <plan>      # Batched planning. Reviews. Fix agents.
-        ↓                      # → docs/<feature>/plan.md (detailed)
-/go-time <feature>             # Implement. Resume. Review.
-        ↓
-/patch-party <feature> "..."   # Bootstrap. Triage. Fix. Escalate.
-                               # → docs/<feature>/bugs.md
+        ↓                      # → docs/<feature>/plan.md (committed to main)
+/go-time <feature>             # Create worktree. Implement. Resume. Review.
+        ↓                      # (in worktree)
+/trust-but-verify <plan>       # Walk through manual test cases.
+        ├── all pass ──→ /land-it    # Merge/PR + cleanup worktree
+        └── bugs ──→ /patch-party    # Fix. Then /land-it.
 ```
 
 Or use `/blueprint <feature>` which routes through story-time + maestro automatically.
@@ -393,7 +423,15 @@ Creates implementation plan from `docs/<feature>/design.md`. Routes to story-tim
 /go-time user-auth
 ```
 
-Executes plan from `docs/<feature>/plan.md` with resumable subagents and batched reviews.
+Creates a worktree and executes plan from `docs/<feature>/plan.md` with resumable subagents and batched reviews. Hands off to trust-but-verify when complete.
+
+### `/trust-but-verify [plan-path]`
+
+```
+/trust-but-verify docs/user-auth/plan.md
+```
+
+Walks through manual test cases from the plan. Routes to `/land-it` (all pass) or `/patch-party` (bugs found).
 
 ### `/patch-party <feature> "<bugs>"`
 
@@ -414,7 +452,8 @@ claude-custom-skills/
 │   ├── story-time/            # Task outline → Gap analysis → Validate
 │   ├── blueprint/             # Simple plans (< 5-7 tasks)
 │   ├── blueprint-maestro/     # Complex plans (from validated outline)
-│   ├── go-time/               # Resumable execution
+│   ├── go-time/               # Worktree creation + resumable execution
+│   ├── trust-but-verify/      # Manual verification before landing
 │   ├── patch-party/           # Post-implementation bugs
 │   ├── rubber-duck/           # Stuck bug escalation
 │   ├── root-canal/            # Full forensic debugging
@@ -440,6 +479,7 @@ The default approach produces plans with gaps. Agents hit context limits and lea
 3. **Batch reviews** - Each batch reviewed before next begins
 4. **Final review** - Fresh Opus verifies end-to-end executability
 5. **Unified code review** - Spec compliance + quality in one pass
+6. **Manual verification** - Human walks through test cases before landing
 
 ### The Scalable Planning Architecture
 

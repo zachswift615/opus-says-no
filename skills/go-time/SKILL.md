@@ -45,18 +45,40 @@ If you find yourself about to write code or make changes, STOP. Dispatch a subag
 - You want efficient execution with minimal agent spawns
 - Continuing a previous go-time session (user tells you which task/batch to resume from)
 
+## Step 0: Create Worktree
+
+**Before doing anything else, create a git worktree for the feature.**
+
+Design and planning docs were committed to main by upstream skills (dream-first, story-time, blueprint/blueprint-maestro), so they'll be available in the worktree automatically.
+
+```
+Use the EnterWorktree tool with the feature name.
+```
+
+After the worktree is created, verify the plan file and design doc are accessible in the new working directory. All implementation from this point forward happens in the worktree.
+
+**If continuing a previous session that already has a worktree:** The user should already be in the worktree. Verify with `git worktree list` and skip this step.
+
 ## Starting Fresh vs. Continuing
 
-**Fresh start:** Load the plan, extract all tasks, create TodoWrite, begin from Task 1.
+**Fresh start:** Create worktree, load the plan, extract all tasks, create TodoWrite, begin from Task 1.
 
 **Continuing from a previous session:** The user will tell you something like "continue from task 5" or "pick up at batch 3." When continuing:
 
-1. Load the plan and extract all tasks as normal
-2. Create TodoWrite but mark already-completed tasks as done (check git log / existing code)
-3. Skip to the specified task and begin dispatching from there
-4. Everything else works the same
+1. Verify you're in the correct worktree
+2. Load the plan and extract all tasks as normal
+3. Create TodoWrite but mark already-completed tasks as done (check git log / existing code)
+4. Skip to the specified task and begin dispatching from there
+5. Everything else works the same
 
 The continuation prompt from the previous session tells you exactly where to pick up.
+
+## Handling the Manual Verification Task
+
+**The last task in the plan is `**Type:** manual-verification`.** Do NOT dispatch a subagent for this task. It is for the human to walk through during trust-but-verify. When you reach this task in the plan:
+
+1. Mark it as "deferred to trust-but-verify" in your progress tracking
+2. Skip it and proceed to the handoff phase
 
 ## Orchestrator Context Self-Monitoring
 
@@ -76,7 +98,8 @@ Use go-time to continue executing the plan at: [plan file path]
 
 **Resume from:** Task [N] ([task name])
 **Completed so far:** Tasks 1-[M] (reviewed and approved)
-**Current branch:** [branch name]
+**Worktree branch:** [branch name]
+**Worktree path:** [worktree path from git worktree list]
 **Last commit:** [sha] - [message]
 **Notes:** [Any context the next session needs - e.g., "Task 3 had a reviewer flag about X, keep an eye on that pattern"]
 ---
@@ -442,13 +465,55 @@ User: "Use go-time to continue the auth plan from task 5"
 - Output the continuation prompt and stop cleanly
 - The next session picks up with full context - that's the whole point
 
+## Handoff to Trust-but-Verify
+
+After all implementation tasks are complete (the manual-verification task was skipped), hand off to trust-but-verify for manual testing.
+
+**If context allows (~30%+ remaining):**
+
+Tell the user implementation is complete and suggest invoking `/trust-but-verify`:
+
+```
+Implementation complete. All tasks executed and reviewed.
+
+The plan includes manual verification test cases that need to be walked through
+to confirm the feature works as intended.
+
+**Plan file:** docs/<feature-name>/plan.md
+**Worktree branch:** [branch name]
+
+To verify the feature, use:
+/trust-but-verify docs/<feature-name>/plan.md
+```
+
+**If context is low (<30% remaining):**
+
+Write a handoff for the next session:
+
+```
+---
+## Handoff
+
+Implementation complete. Manual verification needed.
+
+**Next step:** Invoke `/trust-but-verify docs/<feature-name>/plan.md`
+**Worktree branch:** [branch name]
+**Worktree path:** [worktree path]
+**Last commit:** [sha] - [message]
+**Plan file:** docs/<feature-name>/plan.md
+**Notes:** [Any context about the implementation]
+---
+```
+
+**Go-time no longer hands off directly to land-it or patch-party.** Trust-but-verify is the mandatory next step after execution.
+
 ## Integration
 
 **Required input:**
-- Implementation plan (from implementation-planning skill or similar)
+- Implementation plan (from blueprint or blueprint-maestro)
 
 **Works with:**
-- `superpowers:finishing-a-development-branch` - After all tasks complete
+- `trust-but-verify` - Mandatory next step after execution
 - `superpowers:test-driven-development` - Implementers should follow TDD
 
 **Replaces:**

@@ -109,7 +109,12 @@ Save the validated design to `docs/<feature-name>/design.md`
 - **User Stories** - Gherkin scenarios if created
 - **Open Questions** - Anything still uncertain
 
-Commit the design document to git.
+**Commit the design document to git before handing off.** This ensures the design is on the main branch and available when a worktree is created later during execution.
+
+```bash
+git add docs/<feature-name>/design.md
+git commit -m "docs: add <feature-name> design document"
+```
 
 ---
 

@@ -15,17 +15,21 @@ Execute the implementation plan for **{{feature}}**.
 
 ## Instructions
 
-1. **Read the plan:** Load `docs/{{feature}}/plan.md`
-2. **Invoke go-time skill**
-3. **Follow the workflow:**
+1. **Create worktree** for isolated feature development
+2. **Read the plan:** Load `docs/{{feature}}/plan.md`
+3. **Invoke go-time skill**
+4. **Follow the workflow:**
    - Extract all tasks from the plan
    - Create TodoWrite with all tasks
    - Dispatch implementer subagents
    - Resume agents for questions and additional tasks
    - Batch review when agents exhaust context
-   - Complete with finishing-a-development-branch
+   - Skip the manual-verification task (deferred to trust-but-verify)
+   - Hand off to trust-but-verify when implementation is complete
 
 ## What go-time Does
+
+**Worktree isolation:** Creates a git worktree so all implementation happens on an isolated branch. Design docs committed to main are available automatically.
 
 **Resumable agents:** Reuse agents while they have context. Resume to:
 - Answer questions (agent-to-agent communication)
@@ -36,8 +40,8 @@ Execute the implementation plan for **{{feature}}**.
 
 **Context tracking:** When capacity < 50%, review triggers and fresh agent takes over.
 
-## Next Step (if bugs remain)
+## Next Step
 
 ```
-/patch-party {{feature}} "<bug descriptions>"
+/trust-but-verify docs/{{feature}}/plan.md
 ```

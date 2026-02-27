@@ -336,8 +336,8 @@ Updated: docs/<feature>/bugs.md
 
 Next steps:
 - [If remaining bugs: continue fixing]
-- [If design gaps: dream-first]
-- [If all clear: finishing-a-development-branch]
+- [If design gaps: /dream-first]
+- [If all clear: /land-it (handles merge/PR + worktree cleanup)]
 ```
 
 ## The Escalation Ladder
