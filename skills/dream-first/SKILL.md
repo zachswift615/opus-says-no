@@ -164,21 +164,32 @@ The subagent will return a review with:
 
 ### 3. Incorporate Feedback
 
-Review the subagent's findings with the user and update the design.
+Review the subagent's findings and **proactively suggest how to handle each item** before asking the user.
 
 **Categorize feedback:**
 - **Critical** (must fix) - Missing scope items, incorrect assumptions, security risks
 - **Important** (should fix) - Edge cases, missing decisions, scalability concerns
 - **Nice-to-have** (consider) - Polish, future enhancements
 
-**For each piece of feedback:**
-1. **If it reveals a gap in decisions** - Add to "Key Decisions" section
-2. **If it's a missing scope item** - Add to "In Scope" or document why it's out
-3. **If it's a new edge case** - Add user story or document in design
-4. **If it questions the approach** - Re-evaluate and discuss with user
-5. **If it's truly out of scope** - Add to "Explicitly Out of Scope" with rationale
+**For each review item, propose a concrete suggestion.** Don't just list the items and ask the user what to do — offer your recommended resolution inline. Format like this:
 
-**Update the design document** with:
+```
+**[Category] - [Issue Title]**
+Review finding: [What the reviewer flagged]
+Suggested resolution: [Your specific proposal for how to handle it]
+```
+
+Group all items with your suggestions into a single message, then ask the user:
+"Here's how I'd suggest handling the review feedback. Let me know if any of these should be handled differently."
+
+**Types of suggestions to offer:**
+- **Gap in decisions** → Propose the specific decision to add to "Key Decisions"
+- **Missing scope item** → Suggest adding it to scope, or explain why it should stay out of scope
+- **New edge case** → Draft the user story or describe where to document it
+- **Questions the approach** → Give your assessment of whether the concern is valid and what (if anything) to change
+- **Truly out of scope** → Recommend deferring with a specific rationale
+
+**After the user confirms (or adjusts), update the design document** with:
 ```markdown
 ## Design Review Results
 
