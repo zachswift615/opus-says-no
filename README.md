@@ -7,7 +7,7 @@ THE PROCESS IS THE SHORTCUT.
 A collection of custom skills for Claude Code that enforce discipline in planning, implementation, and bug-fixing.
 
 ```
-PLANS WITH GAPS ARE BUGS YOU HAVEN'T FOUND YET.
+GAPS DON'T FIX THEMSELVES DURING IMPLEMENTATION.
 ```
 
 ## The Philosophy
@@ -34,7 +34,7 @@ Every shortcut in planning becomes a bug in implementation. Every skipped review
 
 ### `dream-first`
 
-Don't start coding until you know what you're building.
+You can't plan what you haven't decided.
 
 **Core principle:** Exploration before commitment. Decisions before details.
 
@@ -68,7 +68,7 @@ Break it down before you plan it out.
 
 ### `blueprint-maestro` (Recommended)
 
-The conductor for complex plans.
+Plans break at scale. This doesn't.
 
 **Core principle:** Fresh agents per batch. Fresh fix agents for repairs. No compromises.
 
@@ -92,7 +92,7 @@ Same rigor, single agent. Use when you have < 5-7 straightforward tasks.
 
 ### `go-time`
 
-Time to make it real.
+Plans don't ship themselves.
 
 **Core principle:** Resume > re-dispatch. Context is expensive.
 
@@ -122,7 +122,7 @@ The code works. Now prove it.
 
 ### `patch-party`
 
-Implementation rarely ends clean. Time to clean up.
+The first build is never the last.
 
 **Core principle:** Context is expensive. Transfer it, don't rebuild it.
 
@@ -140,12 +140,12 @@ IMPLEMENTATION COMPLETE ≠ FEATURE COMPLETE
 
 ### `rubber-duck`
 
-When you can't figure out why something isn't working, explain it to someone else. Half the time, you'll solve it mid-sentence.
+If you can't explain the bug, you haven't found it yet.
 
 **Core principle:** Writing the explanation IS the debugging. The prompt is a side effect.
 
 ```
-IF YOU CAN'T EXPLAIN IT CLEARLY, YOU DON'T UNDERSTAND IT YET
+THE EXPLANATION IS THE FIX.
 ```
 
 **Triggers:**
@@ -161,12 +161,12 @@ IF YOU CAN'T EXPLAIN IT CLEARLY, YOU DON'T UNDERSTAND IT YET
 
 ### `root-canal`
 
-When rubber-duck + consultation didn't work. Time to go surgical.
+When talking didn't work, start cutting.
 
 **Core principle:** ALWAYS find root cause before attempting fixes. Symptom fixes are failure.
 
 ```
-NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
+GUESSING ISN'T FIXING.
 ```
 
 **The Four Phases:**
@@ -181,13 +181,9 @@ NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
 
 ### `land-it`
 
-Implementation done. Time to land the branch.
+The branch isn't done until it's gone.
 
 **Core principle:** Verify tests → Present options → Execute choice → Clean up.
-
-```
-LAND IT CLEAN OR DON'T LAND IT AT ALL
-```
 
 **The Process:**
 1. **Verify tests** - Must pass before any option is available
@@ -281,7 +277,7 @@ If bugs are found during verification:
 /land-it                          # Then ship it.
 ```
 
-If you skip steps, Opus will punish you later.
+Shortcuts compound. So does discipline.
 
 ---
 
