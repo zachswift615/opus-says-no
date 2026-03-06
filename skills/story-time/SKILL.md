@@ -168,6 +168,14 @@ For each task, specify:
 - Focus on the dependency graph
 - Every output must be consumed by something
 - Every input must come from somewhere
+- Acceptance criteria MUST be testable assertions, not vague goals
+  - GOOD: "POST /api/auth returns a JWT containing user_id and role claims"
+  - GOOD: "Importing a CSV with 10k rows completes in under 5 seconds"
+  - GOOD: "When token expires, refresh endpoint returns new token without re-authentication"
+  - BAD: "User can log in"
+  - BAD: "System performs well"
+  - BAD: "Authentication works correctly"
+  - Each criterion should be verifiable by a reviewer reading the code or running a test
 
 **Write the task outline to:** docs/<feature-name>/plan.md
 Add the outline under a "## Task Outline" section.
@@ -283,13 +291,19 @@ Update the plan file status line from "In Progress - Task Outline" to "Outline C
 - Gap analysis: [N] iterations, [M] gaps resolved
 - Status: Gap-free, ready for detailed planning
 
-**To create the detailed implementation plan, use:**
+**Next steps — choose your path:**
 
+**Option A: Direct execution (agents have implementation agency)**
+```
+/go-time <feature-name>
+```
+Go-time auto-detects the outline and uses outline mode — implementers read the design doc and make their own implementation decisions, reviewed holistically against acceptance criteria.
+
+**Option B: Detailed planning first (step-by-step blueprint)**
 ```
 /blueprint-maestro docs/<feature-name>/plan.md
 ```
-
-Or use `/blueprint <feature-name>` which will detect the outline and route automatically.
+Or use `/blueprint <feature-name>` which will detect the outline and route automatically. Then `/go-time <feature-name>` to execute the detailed plan.
 
 ---
 

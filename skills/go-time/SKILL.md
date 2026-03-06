@@ -59,6 +59,37 @@ After the worktree is created, verify the plan file and design doc are accessibl
 
 **If continuing a previous session that already has a worktree:** The user should already be in the worktree. Verify with `git worktree list` and skip this step.
 
+## Plan Granularity Detection
+
+**Before dispatching any agents, determine the plan's granularity level.** This affects how you prompt implementers and reviewers.
+
+After reading the plan, check the task format:
+
+**Blueprint mode** (detailed plan from blueprint/blueprint-maestro):
+- Tasks have `**Files:**` sections with exact paths
+- Tasks contain code fences with implementation code
+- Tasks have TDD steps (write test, run, implement, run, commit)
+- Tasks have exact commands with expected output
+
+**Outline mode** (task outline directly from story-time, no blueprint step):
+- Tasks have `**Goal:**`, `**Inputs:**`, `**Outputs:**`, `**Acceptance Criteria:**`
+- Tasks have `**Depends On:**` and `**Consumed By:**`
+- Tasks do NOT have file paths, code, or step-by-step instructions
+- Plan status says "Outline Complete" rather than "Approved - Ready for Execution"
+
+**Detection rule:** If the first non-manual-verification task has a `**Files:**` section → blueprint mode. Otherwise → outline mode.
+
+**What changes in outline mode:**
+- Implementers get the design doc path and are told to read it for architectural context. They have agency over implementation decisions.
+- Use `./implementer-prompt.md` (Outline Mode section) instead of the standard dispatch template.
+- Use `./outline-reviewer-prompt.md` instead of `./unified-reviewer-prompt.md`. This reviewer checks AC compliance + code quality holistically (like a PR review), not line-by-line spec compliance.
+- The orchestrator provides: task goal, acceptance criteria, context about dependencies and what came before — NOT detailed code specs.
+
+**Announce the detected mode:**
+```
+Plan detected as [blueprint/outline] mode. [Using detailed spec enforcement. / Agents will have implementation agency with design doc reference.]
+```
+
 ## Starting Fresh vs. Continuing
 
 **Fresh start:** Create worktree, load the plan, extract all tasks, create TodoWrite, begin from Task 1.
@@ -253,19 +284,22 @@ Task tool:
     Same rules apply - ask if uncertain, report capacity when done.
 ```
 
-### Dispatching Unified Reviewer
+### Dispatching Reviewer
 
-See `./unified-reviewer-prompt.md`. Reviews both spec compliance AND code quality in one pass.
+**Blueprint mode:** See `./unified-reviewer-prompt.md`. Reviews spec compliance line-by-line AND code quality.
+
+**Outline mode:** See `./outline-reviewer-prompt.md`. Reviews acceptance criteria compliance + code quality holistically, like a PR review against a design doc.
 
 ```
 Task tool (general-purpose):
   description: "Review Tasks N-M implementation"
   prompt: |
-    [Use template from ./unified-reviewer-prompt.md]
+    [Use template from ./unified-reviewer-prompt.md (blueprint) or ./outline-reviewer-prompt.md (outline)]
 
     Tasks reviewed: [list]
-    Expected behavior: [from plan]
+    Expected behavior: [from plan — full spec text (blueprint) or AC + goal (outline)]
     Files changed: [list from implementer reports]
+    Design document: [docs/<feature>/design.md — always include in outline mode]
     BASE_SHA: [commit before batch]
     HEAD_SHA: [current commit]
 ```
@@ -510,7 +544,9 @@ Implementation complete. Manual verification needed.
 ## Integration
 
 **Required input:**
-- Implementation plan (from blueprint or blueprint-maestro)
+- Implementation plan — either:
+  - Detailed plan from blueprint/blueprint-maestro (blueprint mode), OR
+  - Validated task outline from story-time (outline mode — agents get implementation agency)
 
 **Works with:**
 - `trust-but-verify` - Mandatory next step after execution

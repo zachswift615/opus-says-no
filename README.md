@@ -97,10 +97,12 @@ Time to make it real.
 **Core principle:** Resume > re-dispatch. Context is expensive.
 
 - **Creates a git worktree** for isolated feature development
+- **Auto-detects plan granularity** — blueprint mode (detailed specs) or outline mode (agent agency)
 - Agents answer questions via resume (true agent-to-agent communication)
 - Agents continue with next task while context allows
 - Batch review after agent exhaustion, not per-task
-- Unified reviewer checks spec AND quality in one pass
+- **Blueprint mode:** Unified reviewer checks line-by-line spec compliance + code quality
+- **Outline mode:** Holistic reviewer checks acceptance criteria + design alignment + code quality (like a PR review)
 - Skips the manual verification task (deferred to trust-but-verify)
 - Hands off to trust-but-verify, never directly to land-it
 
@@ -255,8 +257,20 @@ For any new feature:
 
 ```
 /dream-first                      # What are we building?
-/blueprint <feature>              # How are we building it?
+/story-time <feature>             # Break it down. Gap analysis.
 /go-time <feature>                # Build it (in a worktree).
+/trust-but-verify <plan-path>     # Prove it works.
+/land-it                          # Ship it.
+```
+
+Go-time auto-detects plan granularity. With a story-time outline, agents get implementation agency — they read the design doc and make their own decisions, reviewed holistically against acceptance criteria.
+
+**Want more control?** Add a blueprint step between story-time and go-time:
+
+```
+/dream-first                      # What are we building?
+/blueprint <feature>              # How are we building it? (detailed step-by-step)
+/go-time <feature>                # Build it (paint by numbers).
 /trust-but-verify <plan-path>     # Prove it works.
 /land-it                          # Ship it.
 ```
@@ -313,7 +327,9 @@ flowchart TD
     Outline --> GapReview{{Gap Analysis<br/>Opus Says No?}}
     GapReview -->|Iterate| GapFix[Fresh Fix Agent]
     GapFix --> GapReview
-    GapReview -->|Clean| Maestro[blueprint-maestro]
+    GapReview -->|Clean| PathChoice{Blueprint<br/>or Direct?}
+    PathChoice -->|Direct| GoTimeCmd
+    PathChoice -->|Blueprint| Maestro[blueprint-maestro]
 
     Maestro --> BatchLoop[Batch Loop]
     BatchLoop --> Writer[Fresh Writer<br/>2-3 Tasks]
@@ -331,9 +347,9 @@ flowchart TD
     GoTimeCmd --> Worktree[Create Worktree]
     Worktree --> GoTime[go-time skill]
     GoTime --> Impl[Implementers]
-    Impl --> UnifiedReview{{Unified Review}}
-    UnifiedReview -->|Iterate| Impl
-    UnifiedReview -->|Complete| TBV[/trust-but-verify/]
+    Impl --> Review{{Review<br/>Blueprint: Unified<br/>Outline: Holistic}}
+    Review -->|Iterate| Impl
+    Review -->|Complete| TBV[/trust-but-verify/]
 
     TBV --> WalkTests[Walk Through<br/>Manual Test Cases]
     WalkTests -->|All Pass| LandIt[/land-it/]
@@ -353,7 +369,7 @@ flowchart TD
     classDef cmdNode fill:#ffd43b,stroke:#f59f00,color:#000
     classDef docNode fill:#51cf66,stroke:#2f9e44,color:#fff
 
-    class DesignReview,GapReview,BatchReview,FinalReview,UnifiedReview reviewNode
+    class DesignReview,GapReview,BatchReview,FinalReview,Review reviewNode
     class DreamFirst,BlueprintCmd,BlueprintSkill,StoryTime,Maestro,GoTimeCmd,GoTime,PatchParty,RubberDuck,TBV,LandIt cmdNode
     class DesignDoc,PlanDoc,BugsDoc docNode
 ```
@@ -364,14 +380,28 @@ flowchart TD
 
 ## Text Workflow
 
+**Direct path (agents have implementation agency):**
 ```
 /dream-first                   # Explore. Decide. Review.
         ↓                      # → docs/<feature>/design.md (committed to main)
 /story-time <feature>          # Outline. Gap analysis. Validate.
-        ↓                      # → docs/<feature>/plan.md (committed to main)
+        ↓                      # → docs/<feature>/plan.md (outline, committed to main)
+/go-time <feature>             # Auto-detects outline mode. Agents read design doc.
+        ↓                      # (in worktree, holistic review)
+/trust-but-verify <plan>       # Walk through manual test cases.
+        ├── all pass ──→ /land-it    # Merge/PR + cleanup worktree
+        └── bugs ──→ /patch-party    # Fix. Then /land-it.
+```
+
+**Blueprint path (step-by-step specs):**
+```
+/dream-first                   # Explore. Decide. Review.
+        ↓                      # → docs/<feature>/design.md (committed to main)
+/story-time <feature>          # Outline. Gap analysis. Validate.
+        ↓                      # → docs/<feature>/plan.md (outline, committed to main)
 /blueprint-maestro <plan>      # Batched planning. Reviews. Fix agents.
-        ↓                      # → docs/<feature>/plan.md (committed to main)
-/go-time <feature>             # Create worktree. Implement. Resume. Review.
+        ↓                      # → docs/<feature>/plan.md (detailed, committed to main)
+/go-time <feature>             # Auto-detects blueprint mode. Line-by-line review.
         ↓                      # (in worktree)
 /trust-but-verify <plan>       # Walk through manual test cases.
         ├── all pass ──→ /land-it    # Merge/PR + cleanup worktree
@@ -478,7 +508,7 @@ The default approach produces plans with gaps. Agents hit context limits and lea
 2. **Gap analysis** - Fresh Opus finds structural gaps in outlines
 3. **Batch reviews** - Each batch reviewed before next begins
 4. **Final review** - Fresh Opus verifies end-to-end executability
-5. **Unified code review** - Spec compliance + quality in one pass
+5. **Code review** - Unified (blueprint mode) or holistic (outline mode)
 6. **Manual verification** - Human walks through test cases before landing
 
 ### The Scalable Planning Architecture

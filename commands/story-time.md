@@ -35,8 +35,12 @@ Story-time produces a gap-free task outline with:
 
 ## Next Step
 
+**Direct execution (agents have implementation agency):**
 ```
-/blueprint-maestro docs/{{feature}}/plan.md
+/go-time {{feature}}
 ```
 
-Or use `/blueprint {{feature}}` which will detect the outline and route automatically.
+**Or detailed planning first (step-by-step blueprint):**
+```
+/blueprint {{feature}}
+```
